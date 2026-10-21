@@ -1,0 +1,10 @@
+node_modules/
+dist/
+# documentación y tablas internas del desarrollo: no se publican
+interno/
+tools/piezas_bbox.json
+# salidas de las herramientas de verificación
+capturas/
+pruebas/
+primer-plano/
+*.log

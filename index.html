@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>DOMI · Tu casa te escucha. Nadie más.</title>
+  <meta name="description" content="DOMI es el asistente de voz para el hogar que entiende y responde dentro de tu casa, sin mandar tu voz a ningún servidor. Un CORE para toda la casa y un NODO en cada ambiente.">
+  <meta name="theme-color" content="#08090b">
+  <meta property="og:title" content="DOMI · Tu casa te escucha. Nadie más.">
+  <meta property="og:description" content="El asistente de voz que piensa dentro de tu casa. Sin nube y sin abonos.">
+  <meta property="og:image" content="renders/hero.jpg">
+  <link rel="icon" href="brand/DOMI_simbolo_blanco.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+  <a class="saltar" href="#contenido">Saltar al contenido</a>
+
+  <!-- ===================================================== carga -->
+  <div id="carga" role="status" aria-live="polite">
+    <svg class="carga-simbolo" viewBox="167 73 974 974" aria-hidden="true"><path pathLength="1" fill-rule="evenodd" d="M275 140H655C887 140 1074 328 1074 560C1074 792 887 980 655 980H275Q235 980 235 940V180Q235 140 275 140Z M376 501L599 340Q617 326 637 341L843 499Q855 510 855 526V800Q855 830 825 830H620V680Q620 651 591 651H500Q471 651 471 680V830H394Q364 830 364 800V526Q364 511 376 501Z"/></svg>
+    <p class="carga-texto"><span>Cargando DOMI</span> <b id="carga-pct">0 %</b></p>
+  </div>
+
+  <!-- ===================================================== escena 3D fija -->
+  <canvas id="gl" aria-label="DOMI NODO y DOMI CORE en 3D. El recorrido avanza con el scroll." role="img"></canvas>
+  <div id="etiquetas" aria-hidden="true"><svg class="guias"></svg></div>
+  <div id="modo" class="modo" aria-live="polite" hidden>
+    <span class="modo-punto"></span><span id="modo-texto">Arrastrá para girar · rueda o pellizco para acercar</span>
+    <button type="button" id="salir-explorar" class="boton chico">Volver <kbd>Esc</kbd></button>
+  </div>
+
+  <!-- ===================================================== navegación -->
+  <header class="nav" id="nav">
+    <a class="nav-marca" href="#inicio" aria-label="DOMI, inicio">
+      <img src="/brand/DOMI_simbolo_blanco.svg" alt="" width="22" height="22"><span>DOMI</span>
+    </a>
+    <nav aria-label="Secciones">
+      <a href="#nodo-exterior">NODO</a>
+      <a href="#privacidad">Privacidad</a>
+      <a href="#core-exterior">CORE</a>
+      <a href="#interior">Diseño</a>
+      <a href="#inteligencia">Cómo funciona</a>
+      <a href="#personaliza">Colores</a>
+      <a href="#especificaciones">Especificaciones</a>
+    </nav>
+    <a class="nav-comprar" href="#comprar">Comprar</a>
+    <div class="nav-progreso" aria-hidden="true"><i id="progreso"></i></div>
+  </header>
+
+  <main id="contenido">
+
+    <!-- 1 · Presentación -->
+    <section id="inicio" class="escena" data-escena style="--largo: 2.6">
+      <div class="fijo">
+        <div class="bloque centro arriba" data-in="0" data-out="0.62">
+          <p class="ceja">DOMI · Asistente de voz para el hogar</p>
+          <h1 class="titulo-hero">Tu casa te escucha.<br><span class="tenue">Nadie más.</span></h1>
+          <p class="bajada">El asistente de voz que entiende y responde dentro de tu casa. Tu voz nunca sale de ella.</p>
+        </div>
+        <div class="pista-scroll" data-in="0" data-out="0.18"><span>Deslizá para descubrirlo</span><i></i></div>
+        <img class="render-alt" src="/renders/hero.jpg" alt="DOMI NODO y DOMI CORE sobre fondo oscuro, unidos por una línea de luz." loading="lazy">
+      </div>
+    </section>
+
+    <!-- 2 · Por qué DOMI -->
+    <section id="problema" class="escena" data-escena style="--largo: 1.9">
+      <div class="fijo">
+        <div class="bloque izq medio" data-in="0.18" data-out="0.92">
+          <p class="ceja">Por qué DOMI</p>
+          <h2>Lo que decís en casa, se queda en casa.</h2>
+          <p class="cuerpo">La mayoría de los asistentes de voz mandan lo que decís a servidores lejanos para poder entenderlo. DOMI lo entiende ahí mismo, en un equipo que vive en tu casa. Sin nube y sin abonos.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 · El sistema -->
+    <section id="sistema" class="escena" data-escena style="--largo: 2.4">
+      <div class="fijo">
+        <div class="bloque centro arriba" data-in="0.12" data-out="0.94">
+          <p class="ceja">El sistema</p>
+          <h2>Un cerebro para toda la casa.</h2>
+          <p class="cuerpo ancho">El DOMI CORE hace todo el trabajo desde un rincón de tu casa. En cada ambiente, un DOMI NODO te escucha y te responde. Se hablan por tu Wi-Fi, sin salir a internet.</p>
+        </div>
+        <dl class="datos-pie" data-in="0.5" data-out="0.96">
+          <div><dt>DOMI NODO</dt><dd>Uno en cada ambiente</dd></div>
+          <div><dt>DOMI CORE</dt><dd>Uno para toda la casa</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- 4 · DOMI NODO -->
+    <section id="nodo-exterior" class="escena" data-escena style="--largo: 3.8">
+      <div class="fijo">
+        <div class="bloque izq medio" data-in="0.02" data-out="0.15">
+          <p class="ceja">DOMI NODO</p>
+          <h2>Te escucha desde cualquier rincón.<br><span class="tenue">Y te responde en 360°.</span></h2>
+          <p class="cuerpo">Once centímetros de alto, dos micrófonos, un parlante que llena el ambiente y una luz que se ve a través de la rejilla.</p>
+        </div>
+        <div class="bloque izq medio" data-in="0.17" data-out="0.98">
+          <p class="ceja">Luz de estado</p>
+          <h2>Una luz que te dice qué está pasando.</h2>
+          <ol class="estados" id="lista-estados">
+            <li data-estado="escuchando" style="--c:#34E07A"><i></i><div><b>Escuchando</b><span>Se enciende en verde cuando decís «DOMI».</span></div></li>
+            <li data-estado="pensando" style="--c:#3D7BFF"><i></i><div><b>Pensando</b><span>Un anillo azul gira mientras entiende tu pedido.</span></div></li>
+            <li data-estado="respondiendo" style="--c:#5A6BFF"><i></i><div><b>Respondiendo</b><span>La luz baja y late con cada palabra.</span></div></li>
+            <li data-estado="voz" style="--c:#2FD3FF"><i></i><div><b>Voz en acción</b><span>Las luces siguen la voz de DOMI.</span></div></li>
+          </ol>
+        </div>
+        <img class="render-alt" src="/renders/nodo.jpg" alt="DOMI NODO con la franja superior encendida en verde." loading="lazy">
+      </div>
+    </section>
+
+    <!-- 5 · Privacidad -->
+    <section id="privacidad" class="escena" data-escena style="--largo: 2.3">
+      <div class="fijo">
+        <div class="bloque izq medio interactivo" data-in="0.08" data-out="0.97">
+          <p class="ceja">Privacidad</p>
+          <h2>Tocás la tapa. El micrófono se apaga. De verdad.</h2>
+          <p class="cuerpo">Toda la tapa es un botón. Al tocarla, el micrófono queda desconectado y el ícono se pone rojo. Ningún programa lo puede volver a encender: solo vos.</p>
+          <div class="privacidad-control">
+            <button type="button" class="boton primario" id="btn-privacidad" aria-pressed="false">Tocar la tapa</button>
+            <span class="estado-mic" id="estado-mic"><i></i><span>Micrófono encendido</span></span>
+          </div>
+          <p class="nota">Simulación: esta página no usa tu micrófono.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 · DOMI CORE -->
+    <section id="core-exterior" class="escena" data-escena style="--largo: 3.1">
+      <div class="fijo">
+        <div class="bloque izq medio" data-in="0.04" data-out="0.4">
+          <p class="ceja">DOMI CORE</p>
+          <h2>El cerebro, en una caja de 11 centímetros.</h2>
+          <p class="cuerpo">Entiende lo que le pedís y te responde con voz natural. Todo pasa adentro de tu casa, sin abonos mensuales.</p>
+        </div>
+        <div class="bloque izq medio" data-in="0.44" data-out="0.7">
+          <p class="ceja">Instalación</p>
+          <h2>Un solo cable.</h2>
+          <p class="cuerpo">Lo enchufás, lo conectás a tu Wi-Fi y listo. Atrás solo está la entrada de energía.</p>
+        </div>
+        <div class="bloque izq medio" data-in="0.74" data-out="0.98">
+          <p class="ceja">Diseño</p>
+          <h2>Una base que respira.</h2>
+          <p class="cuerpo">El aire entra por adelante y sale por atrás, a través de una base que parece flotar. Sin tornillos a la vista.</p>
+        </div>
+        <img class="render-alt" src="/renders/core.jpg" alt="DOMI CORE: caja grafito de esquinas redondeadas con barra de luz frontal." loading="lazy">
+      </div>
+    </section>
+
+    <!-- 7 · Diseño: la vista abierta -->
+    <section id="interior" class="escena" data-escena style="--largo: 5.4">
+      <div class="fijo">
+        <div class="bloque izq arriba-izq" data-in="0.03" data-out="0.46">
+          <p class="ceja">Diseño · NODO</p>
+          <h2>Pensado de adentro hacia afuera.</h2>
+          <p class="cuerpo">El parlante abajo para que el sonido salga parejo, la luz en el medio y los micrófonos cerca de la tapa. Cada parte, donde tiene que estar.</p>
+        </div>
+        <div class="bloque izq arriba-izq" data-in="0.5" data-out="0.98">
+          <p class="ceja">Diseño · CORE</p>
+          <h2>Mucha inteligencia, poco espacio.</h2>
+          <p class="cuerpo">Procesamiento propio, disipadores de aluminio y ventilación por la base. Todo en once centímetros.</p>
+        </div>
+
+        <div class="taller interactivo" data-in="0.06" data-out="0.99">
+          <div class="taller-fila">
+            <div class="segmento" role="group" aria-label="Dispositivo">
+              <button type="button" data-ir="nodo" aria-pressed="true">NODO</button>
+              <button type="button" data-ir="core" aria-pressed="false">CORE</button>
+            </div>
+            <span class="modo-etq" id="modo-interior"><i></i>El scroll abre el producto</span>
+          </div>
+          <div class="taller-fila">
+            <button type="button" class="boton" id="btn-abrir">Abrir producto</button>
+            <button type="button" class="boton" id="btn-ensamblar">Ensamblar</button>
+            <button type="button" class="boton" id="btn-restablecer">Restablecer vista</button>
+            <button type="button" class="boton" data-explorar>Explorar en 3D</button>
+          </div>
+          <details class="piezas-lista">
+            <summary>Partes destacadas</summary>
+            <ul id="lista-piezas"></ul>
+          </details>
+          <p class="nota">Tocá una parte para conocerla.</p>
+        </div>
+        <div class="ficha interactivo" id="ficha" role="region" aria-label="Parte seleccionada" hidden>
+          <h3 id="ficha-nombre"></h3>
+          <p id="ficha-texto"></p>
+          <button type="button" class="boton chico" id="ficha-cerrar">Volver al conjunto</button>
+        </div>
+        <img class="render-alt" src="/renders/interior_nodo.jpg" alt="DOMI NODO abierto: rejilla, tapa, micrófonos, luz y parlante." loading="lazy">
+      </div>
+    </section>
+
+    <!-- 8 · Cómo funciona -->
+    <section id="inteligencia" class="escena" data-escena style="--largo: 4.2">
+      <div class="fijo">
+        <div class="bloque izq arriba-izq ancho-ia interactivo" data-in="0.04" data-out="0.98">
+          <p class="ceja">Cómo funciona</p>
+          <h2>Le hablás. Te responde. En menos de tres segundos.<sup class="ref"><a href="#nota-1">1</a></sup></h2>
+          <ol class="pasos" id="pasos"></ol>
+        </div>
+        <div class="demo interactivo" id="demo" aria-live="polite" data-in="0.1" data-out="0.98">
+          <p class="demo-etq">Ejemplo · no usa tu micrófono</p>
+          <p class="demo-linea" data-paso="0"><span class="demo-k">Vos</span><q id="demo-frase">DOMI, apagá la luz del living.</q></p>
+          <p class="demo-linea" data-paso="2"><span class="demo-k">Entiende</span><code>apagar · luz · living</code></p>
+          <p class="demo-linea" data-paso="3"><span class="demo-k">DOMI</span><q>Listo, apagué la luz del living.</q></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9 · Terminaciones -->
+    <section id="ensamblaje" class="escena" data-escena style="--largo: 2.3">
+      <div class="fijo">
+        <div class="bloque izq medio" data-in="0.1" data-out="0.96">
+          <p class="ceja">Terminaciones</p>
+          <h2>Sin tornillos a la vista.</h2>
+          <p class="cuerpo">Todo cierra por debajo: en el NODO, bajo la base de silicona; en el CORE, bajo el aro de goma.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 · Colores -->
+    <section id="personaliza" class="escena" data-escena style="--largo: 1.7">
+      <div class="fijo">
+        <div class="bloque centro arriba" data-in="0.08" data-out="1.01">
+          <p class="ceja">Colores</p>
+          <h2>Elegí cómo se ve en tu casa.</h2>
+        </div>
+        <div class="config interactivo" data-in="0.18" data-out="1.01" id="config">
+          <div class="config-fila">
+            <div class="segmento" role="group" aria-label="Dispositivo a personalizar">
+              <button type="button" data-prod="nodo" aria-pressed="false">NODO</button>
+              <button type="button" data-prod="core" aria-pressed="false">CORE</button>
+              <button type="button" data-prod="ambos" aria-pressed="true">Los dos</button>
+            </div>
+          </div>
+          <div class="config-fila" role="group" aria-label="Combinaciones">
+            <span class="config-etq">Combinación</span>
+            <div class="chips" id="presets"></div>
+          </div>
+          <div class="config-fila">
+            <span class="config-etq" id="etq-cuerpo">Cuerpo</span>
+            <div class="muestras" role="radiogroup" aria-labelledby="etq-cuerpo" id="muestras-cuerpo"></div>
+            <span class="config-etq" id="etq-tapa">Tapa</span>
+            <div class="muestras" role="radiogroup" aria-labelledby="etq-tapa" id="muestras-tapa"></div>
+          </div>
+          <div class="config-fila">
+            <span class="config-etq">Luz</span>
+            <div class="chips" id="luces"></div>
+          </div>
+          <div class="config-fila">
+            <button type="button" class="boton" data-explorar>Explorar en 3D</button>
+            <button type="button" class="boton" id="btn-restablecer-config">Restablecer vista</button>
+            <p class="nota" id="config-nota">El símbolo DOMI cambia de tono para destacarse sobre cada color.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 · Comprar -->
+    <section id="comprar" class="plano" data-escena>
+      <div class="contenedor">
+        <p class="ceja">Comprar</p>
+        <h2 class="grande">Una casa entera, sin abonos.</h2>
+        <p class="cuerpo ancho">Comprás el CORE una sola vez y sumás un NODO por cada ambiente.</p>
+        <div class="precios">
+          <article class="precio">
+            <div class="precio-foto"><img src="/renders/core.jpg" alt="" loading="lazy"></div>
+            <h3>DOMI CORE</h3>
+            <p>El cerebro de la casa. Uno por hogar.</p>
+            <p class="monto">US$ 179</p>
+            <button type="button" class="boton" disabled>Próximamente</button>
+          </article>
+          <article class="precio">
+            <div class="precio-foto"><img src="/renders/nodo.jpg" alt="" loading="lazy"></div>
+            <h3>DOMI NODO</h3>
+            <p>Escucha y habla. Uno por ambiente.</p>
+            <p class="monto">US$ 29,99</p>
+            <button type="button" class="boton" disabled>Próximamente</button>
+          </article>
+          <article class="precio destacado">
+            <div class="precio-foto" style="--zoom: 1.25"><img src="/renders/hero.jpg" alt="" loading="lazy"></div>
+            <h3>Casa de 4 ambientes</h3>
+            <p>1 DOMI CORE + 4 DOMI NODO. Cuesta menos que poner un parlante inteligente en cada ambiente.<sup class="ref"><a href="#nota-2">2</a></sup></p>
+            <p class="monto">US$ 298,96</p>
+            <button type="button" class="boton" disabled>Próximamente</button>
+          </article>
+        </div>
+        <p class="nota">Precios sugeridos en dólares estadounidenses.<sup class="ref"><a href="#nota-3">3</a></sup></p>
+      </div>
+    </section>
+
+    <!-- 12 · Especificaciones -->
+    <section id="especificaciones" class="plano" data-escena>
+      <div class="contenedor">
+        <p class="ceja">Especificaciones</p>
+        <h2 class="grande">Especificaciones técnicas.</h2>
+        <div class="specs">
+          <div>
+            <h3>DOMI NODO</h3>
+            <dl>
+              <div><dt>Tamaño</dt><dd>96 mm de diámetro × 110 mm de alto</dd></div>
+              <div><dt>Colores</dt><dd>Grafito, blanco, gris claro y beige. Cuerpo y tapa combinables.</dd></div>
+              <div><dt>Sonido</dt><dd>Parlante de 50 mm y 5 W con sonido en 360°</dd></div>
+              <div><dt>Micrófonos</dt><dd>2 micrófonos</dd></div>
+              <div><dt>Palabra de activación</dt><dd>«DOMI», reconocida en el propio NODO</dd></div>
+              <div><dt>Luz de estado</dt><dd>91 luces LED de color y anillo de luz en la base</dd></div>
+              <div><dt>Privacidad</dt><dd>Tapa táctil que desconecta los micrófonos por hardware · ícono rojo de micrófono apagado</dd></div>
+              <div><dt>Conectividad</dt><dd>Wi-Fi</dd></div>
+              <div><dt>Alimentación</dt><dd>USB-C · 5 V / 1,5 A</dd></div>
+            </dl>
+          </div>
+          <div>
+            <h3>DOMI CORE</h3>
+            <dl>
+              <div><dt>Tamaño</dt><dd>115 × 105 × 45 mm</dd></div>
+              <div><dt>Colores</dt><dd>Grafito, blanco, gris claro y beige. Cuerpo y tapa combinables.</dd></div>
+              <div><dt>Inteligencia</dt><dd>Reconocimiento de voz, comprensión y respuesta con voz natural, en el propio equipo</dd></div>
+              <div><dt>Idioma</dt><dd>Español (Argentina)</dd></div>
+              <div><dt>Nube</dt><dd>No la necesita: tu voz no sale de tu casa. Sin abonos.</dd></div>
+              <div><dt>Conectividad</dt><dd>Wi-Fi</dd></div>
+              <div><dt>Frente</dt><dd>Barra de luz de estado y botón de encendido</dd></div>
+              <div><dt>Ventilación</dt><dd>Base flotante con filtro antipolvo · el aire entra adelante y sale atrás</dd></div>
+              <div><dt>Alimentación</dt><dd>USB-C · fuente de 15 W</dd></div>
+            </dl>
+          </div>
+        </div>
+        <p class="nota">Requisitos: red Wi-Fi en el hogar. Un DOMI CORE por casa y un DOMI NODO por ambiente.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">
+      <img src="/brand/DOMI_logo_blanco.svg" alt="DOMI" class="pie-logo" width="88" height="104">
+      <p class="pie-frase">La inteligencia se queda en casa.</p>
+      <ol class="pie-notas">
+        <li id="nota-1">Tiempo estimado para pedidos del hogar, desde que terminás de hablar hasta que DOMI empieza a responder. Puede variar según el pedido.</li>
+        <li id="nota-2">Comparado con un parlante inteligente Echo Dot de US$ 79,99 en cada uno de los cuatro ambientes (precio de agosto de 2026).</li>
+        <li id="nota-3">Precios sugeridos de lanzamiento. Pueden cambiar. Las imágenes del producto son representaciones del diseño.</li>
+      </ol>
+      <p class="pie-creditos">Diseño de producto: Fabricio Iván Coronil (DOMI NODO) y Alejandro Matías Villalba (DOMI CORE).<br>© 2026 DOMI. Diseñado en Argentina.</p>
+    </div>
+  </footer>
+
+  <div class="sin-webgl-aviso" role="note">Tu navegador no puede mostrar el 3D: te mostramos imágenes del producto.</div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

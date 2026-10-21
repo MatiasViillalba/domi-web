@@ -1,0 +1,31 @@
+{
+  "name": "domi-web",
+  "private": true,
+  "version": "1.0.0",
+  "description": "DOMI: web de producto con DOMI CORE y DOMI NODO en 3D",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "modelos": "node tools/build-models.mjs",
+    "capturas": "node tools/capturas.mjs",
+    "pruebas": "node tools/pruebas.mjs",
+    "renders": "node tools/renders.mjs",
+    "primer-plano": "node tools/primer-plano.mjs"
+  },
+  "dependencies": {
+    "three": "0.169.0"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "4.1.1",
+    "@gltf-transform/extensions": "4.1.1",
+    "@gltf-transform/functions": "4.1.1",
+    "meshoptimizer": "0.22.0",
+    "playwright-core": "1.48.2",
+    "vite": "5.4.11"
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true
+  }
+}
