@@ -106,7 +106,7 @@ export async function iniciar({ base, alProgreso, reducido }) {
   }
 
   // encuadre del dispositivo abierto o cerrado (interior), para la apertura manual
-  const ENC = { nodo: { cerrado: { ty: 62, r: 92 }, abierto: { ty: 166, r: 206 } }, core: { cerrado: { ty: 50, r: 118 }, abierto: { ty: 143, r: 214 } } };
+  const ENC = { nodo: { cerrado: { ty: 62, r: 92 }, abierto: { ty: 166, r: 206 } }, core: { cerrado: { ty: 32, r: 104 }, abierto: { ty: 123, r: 205 } } };
   function encuadreManual(s, sec) {
     const d = sec === 'interior' ? ui.dispositivoInterior() : null;
     if (!d || !ui.override[d]) return s;

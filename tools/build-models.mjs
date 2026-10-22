@@ -147,15 +147,18 @@ async function main() {
       return { pos: P, nrm: N, idx: new Uint32Array(m.idx) };
     };
     const pieces = [];
+    const agregar = (id, geo, kind, color) => {
+      const pbr = KIND_PBR[kind] || KIND_PBR.plastico;
+      pieces.push({ id: generico(id), ...geo, matKey: kind, color, rough: pbr.rough, metal: pbr.metal, extras: { kind } });
+    };
     for (const p of man.piezas) {
-      if (p.id === 'Carcasa_unibody') continue;
+      if (p.id === 'Carcasa_unibody' || cad.quitadas.includes(p.id)) continue;
       const nueva = cad.piezas[p.id];
       const geo = nueva ? toThree(nueva)
         : { pos: slice(buf, p.pos, Float32Array), nrm: slice(buf, p.nrm, Float32Array), idx: slice(buf, p.idx, Uint32Array) };
-      const pbr = KIND_PBR[p.kind] || KIND_PBR.plastico;
-      pieces.push({ id: generico(p.id), ...geo, matKey: p.kind, color: p.color, rough: pbr.rough, metal: pbr.metal,
-        extras: { kind: p.kind } });
+      agregar(p.id, geo, nueva?.kind || p.kind, nueva?.color || p.color);
     }
+    for (const [id, m] of Object.entries(cad.nuevas)) agregar(id, toThree(m), m.kind || 'plastico', m.color || [0.3, 0.3, 0.3]);
     const split = cad;
     const col = [0.1255, 0.1373, 0.1608];
     for (const [id, m] of [['Carcasa_cuerpo', split.cuerpo], ['Carcasa_tapa', split.tapa]]) {

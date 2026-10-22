@@ -1,4 +1,4 @@
-// DOMI CORE: geometría del CAD de A. M. Villalba (Modelo_01, 65 piezas, 115 × 105 × 100 mm; la carcasa dividida en cuerpo y tapa).
+// DOMI CORE: geometría del CAD de A. M. Villalba (Modelo_01, 66 piezas, 115 × 105 × 60 mm; la carcasa dividida en cuerpo y tapa).
 import * as THREE from 'three';
 import { Dispositivo } from './device.js';
 import { TIPOS, uvCaja, colorLogo } from './materials.js';
@@ -25,7 +25,7 @@ export class Core extends Dispositivo {
       Filtro_polvo: () => TIPOS.goma('#040405'), Aro_goma: () => TIPOS.goma('#09090b'),
       Luz_DOMI: () => TIPOS.emisor('#ffffff'), LEDs_blancos: () => TIPOS.emisor('#ffffff'), LEDs_fosforo: () => TIPOS.emisor('#ffffff'),
       Guia_luz: () => TIPOS.opalo('#f2f2f2'), Placa_PCB: () => TIPOS.pcb('#1f6b3a'), PCB_frontal: () => TIPOS.pcb('#0c0f0d'),
-      PCB_entrada: () => TIPOS.pcb('#0c0f0d'), Placa_SoC_IHS: () => TIPOS.aluminio('#c9ccd2'), Placa_WiFi_blindaje: () => TIPOS.aluminio('#c3c6cc'),
+      PCB_entrada: () => TIPOS.pcb('#0c0f0d'), Placa_SoC_IHS: () => TIPOS.plastico('#141518'), Placa_WiFi_blindaje: () => TIPOS.aluminio('#c3c6cc'),
       Disipador_principal: () => TIPOS.aluminio('#c8ccd3'), Disipadores_aux: () => TIPOS.aluminio('#c8ccd3'),
       Placa_pads_montaje: () => TIPOS.oro('#e3b75a'), Placa_GPIO_pines: () => TIPOS.oro('#e3b75a'), Placa_antena: () => TIPOS.oro('#d9ad55'),
       PCB_entrada_pads: () => TIPOS.oro('#e3b75a'), Pads_termicos: () => TIPOS.plastico_mate('#8fa3bf'),

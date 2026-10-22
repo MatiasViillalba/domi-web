@@ -88,8 +88,8 @@ export const NODO = {
 
 export const CORE = {
   nombre: 'DOMI CORE',
-  centro: [0, 50, 0],
-  radio: 92,
+  centro: [0, 30, 0],
+  radio: 82,
   lift: { t0: 0.72, t1: 0.96, y: 36 },
   // Orden de apertura: sale la tapa; el panel frontal y la entrada USB-C se retiran hacia adentro para
   // liberar las paredes; sube el cuerpo (más alto que todo el interior) y recién ahí se separan las piezas.
@@ -108,10 +108,10 @@ export const CORE = {
     },
     {
       id: 'placa', nombre: 'Procesamiento local', destacado: true,
-      texto: 'El corazón de DOMI: convierte tu voz en texto, entiende lo que pedís y arma la respuesta, todo dentro de tu casa.',
+      texto: 'Un procesador de 8 núcleos con aceleradora de IA y 8 GB de memoria: convierte tu voz en texto, entiende lo que pedís y arma la respuesta, todo dentro de tu casa.',
       piezas: ['Placa_PCB', 'Placa_pads_montaje', 'Placa_SoC_sustrato', 'Placa_SoC_IHS', 'Placa_RAM', 'Placa_chips', 'Placa_inductores', 'Placa_cristales',
         'Placa_WiFi_blindaje', 'Placa_antena', 'Placa_LED_PWR', 'Placa_LED_ACT', 'Placa_GPIO_base', 'Placa_GPIO_pines', 'Placa_USB_C', 'Placa_lenguas',
-        'Placa_microSD_zocalo', 'Placa_microSD', 'Placa_SMD_capacitores', 'Placa_SMD_resistencias', 'Conectores_Dupont'],
+        'Placa_SMD_capacitores', 'Placa_SMD_resistencias', 'Conectores_Dupont', 'eMMC_modulo', 'eMMC_chip', 'eMMC_conector'],
       track: [seg(0.46, 0.7, 0, 38, 0)],
       etiqueta: { pieza: 'Placa_PCB', titulo: 'Procesamiento local', sub: 'Toda la inteligencia, en casa', ancla: [-30, 0, 20] },
     },
