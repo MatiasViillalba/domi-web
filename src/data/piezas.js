@@ -88,21 +88,23 @@ export const NODO = {
 
 export const CORE = {
   nombre: 'DOMI CORE',
-  centro: [0, 24, 0],
-  radio: 80,
+  centro: [0, 50, 0],
+  radio: 92,
   lift: { t0: 0.72, t1: 0.96, y: 36 },
+  // Orden de apertura: sale la tapa; el panel frontal y la entrada USB-C se retiran hacia adentro para
+  // liberar las paredes; sube el cuerpo (más alto que todo el interior) y recién ahí se separan las piezas.
   grupos: [
     {
       id: 'tapa', nombre: 'Tapa', destacado: true,
       texto: 'Lleva el símbolo DOMI. Podés elegir su color por separado del cuerpo.',
-      piezas: ['Carcasa_tapa', 'Logo_DOMI'], track: [seg(0.0, 0.24, 0, 160, 0)],
+      piezas: ['Carcasa_tapa', 'Logo_DOMI'], track: [seg(0.0, 0.2, 0, 150, 0)],
       etiqueta: { pieza: 'Carcasa_tapa', titulo: 'Tapa', sub: 'Elegí su color', ancla: [44, 2, 0] },
     },
     {
       id: 'cableado', nombre: 'Cableado',
       piezas: ['Cable_alimentacion', 'Ficha_USB_C_metal', 'Cable_alim_rojo', 'Cable_alim_negro', 'Cinta_hilo_1', 'Cinta_hilo_2',
         'Cinta_hilo_3', 'Cinta_hilo_4', 'Cinta_hilo_5', 'Cable_ventilador_rojo', 'Cable_ventilador_negro'],
-      ocultar: { t0: 0.08, t1: 0.2 },
+      ocultar: { t0: 0.04, t1: 0.14 },
     },
     {
       id: 'placa', nombre: 'Procesamiento local', destacado: true,
@@ -110,18 +112,18 @@ export const CORE = {
       piezas: ['Placa_PCB', 'Placa_pads_montaje', 'Placa_SoC_sustrato', 'Placa_SoC_IHS', 'Placa_RAM', 'Placa_chips', 'Placa_inductores', 'Placa_cristales',
         'Placa_WiFi_blindaje', 'Placa_antena', 'Placa_LED_PWR', 'Placa_LED_ACT', 'Placa_GPIO_base', 'Placa_GPIO_pines', 'Placa_USB_C', 'Placa_lenguas',
         'Placa_microSD_zocalo', 'Placa_microSD', 'Placa_SMD_capacitores', 'Placa_SMD_resistencias', 'Conectores_Dupont'],
-      track: [seg(0.18, 0.46, 0, 38, 0)],
+      track: [seg(0.46, 0.7, 0, 38, 0)],
       etiqueta: { pieza: 'Placa_PCB', titulo: 'Procesamiento local', sub: 'Toda la inteligencia, en casa', ancla: [-30, 0, 20] },
     },
     {
       id: 'tornillos_placa', nombre: 'Fijaciones',
-      piezas: ['Tornillos_placa'], track: [seg(0.18, 0.46, 0, 54, 0)],
+      piezas: ['Tornillos_placa'], track: [seg(0.46, 0.7, 0, 54, 0)],
     },
     {
       id: 'refrigeracion', nombre: 'Disipadores', destacado: true,
       texto: 'Aletas de aluminio alineadas con el paso del aire para que DOMI trabaje fresco.',
       piezas: ['Pads_termicos', 'Disipador_principal', 'Disipadores_aux'],
-      tracks: { Pads_termicos: [seg(0.18, 0.46, 0, 48, 0)], Disipador_principal: [seg(0.18, 0.46, 0, 60, 0)], Disipadores_aux: [seg(0.18, 0.46, 0, 60, 0)] },
+      tracks: { Pads_termicos: [seg(0.46, 0.7, 0, 48, 0)], Disipador_principal: [seg(0.46, 0.7, 0, 60, 0)], Disipadores_aux: [seg(0.46, 0.7, 0, 60, 0)] },
       etiqueta: { pieza: 'Disipador_principal', titulo: 'Disipadores', sub: 'Aletas de aluminio', ancla: [0, 4, 0] },
     },
     {
@@ -129,29 +131,29 @@ export const CORE = {
       texto: 'Al frente, solo lo justo: una barra de luz que muestra qué hace DOMI y el botón de encendido.',
       piezas: ['Luz_DOMI', 'Boton_encendido', 'Boton_encendido_icono', 'Guia_luz', 'LEDs_blancos', 'LEDs_fosforo', 'PCB_frontal', 'PCB_frontal_SMD',
         'Pulsador_tactil', 'Pulsador_chapa', 'Pulsador_actuador', 'Conector_JST'],
-      track: [seg(0.36, 0.48, 0, 0, -4.5), seg(0.66, 0.88, 0, 10, 40)],
-      tracks: { Tornillos_PCB_frontal: [seg(0.3, 0.42, 0, 0, -14), seg(0.66, 0.88, 0, 10, 31)] },
+      track: [seg(0.12, 0.24, 0, 0, -4.5), seg(0.62, 0.84, 0, 10, 40)],
+      tracks: { Tornillos_PCB_frontal: [seg(0.06, 0.18, 0, 0, -14), seg(0.62, 0.84, 0, 10, 31)] },
       extra: ['Tornillos_PCB_frontal'],
       etiqueta: { pieza: 'PCB_frontal', titulo: 'Luz y botón', sub: 'El frente, simple', ancla: [-8, 10, 6] },
     },
     {
       id: 'carcasa', nombre: 'Carcasa', destacado: true,
       texto: 'Esquinas suaves y una sola pieza, sin tornillos a la vista.',
-      piezas: ['Carcasa_cuerpo'], track: [seg(0.48, 0.72, 0, 110, 0)],
+      piezas: ['Carcasa_cuerpo'], track: [seg(0.26, 0.5, 0, 100, 0)],
       etiqueta: { pieza: 'Carcasa_cuerpo', titulo: 'Carcasa', sub: 'Una sola pieza', ancla: [-50, 0, 30] },
     },
     {
       id: 'entrada', nombre: 'Entrada USB-C', destacado: true,
       texto: 'La única conexión del CORE. La red es por Wi-Fi: no necesita ningún otro cable.',
       piezas: ['PCB_entrada', 'USB_C_receptaculo', 'USB_C_receptaculo_lengua', 'PCB_entrada_pads', 'PCB_entrada_SMD', 'Tornillos_PCB_entrada'],
-      track: [seg(0.36, 0.46, 0, 3, 0), seg(0.42, 0.52, 0, 0, 4), seg(0.66, 0.88, 0, 0, -46)],
+      track: [seg(0.12, 0.2, 0, 3, 0), seg(0.16, 0.24, 0, 0, 4), seg(0.62, 0.84, 0, 0, -46)],
       etiqueta: { pieza: 'PCB_entrada', titulo: 'USB-C', sub: 'Un solo cable' },
     },
     {
       id: 'ventilador', nombre: 'Ventilación', destacado: true,
       texto: 'Mueve el aire hacia la base, que lo saca por atrás.',
       piezas: ['Ventilador_marco', 'Ventilador_rotor', 'Ventilador_etiqueta', 'Tornillos_ventilador'],
-      track: [seg(0.68, 0.86, -44, 0, 0)], tracks: { Tornillos_ventilador: [seg(0.62, 0.7, 0, 24, 0), seg(0.68, 0.86, -44, 0, 0)] },
+      track: [seg(0.66, 0.84, -44, 0, 0)], tracks: { Tornillos_ventilador: [seg(0.58, 0.66, 0, 24, 0), seg(0.66, 0.84, -44, 0, 0)] },
       etiqueta: { pieza: 'Ventilador_marco', titulo: 'Ventilación', sub: 'El aire sale por atrás' },
     },
     {

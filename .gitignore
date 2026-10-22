@@ -8,3 +8,4 @@ capturas/
 pruebas/
 primer-plano/
 *.log
+__pycache__/

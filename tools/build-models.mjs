@@ -5,8 +5,8 @@
 //   npm run modelos
 //
 // Entrada:  DOMI_Kit_Presentacion/visor_3d/{domi,core}.json + .b64.txt
-//           cad_fuente/core_tapa_split.json  (tapa y cuerpo del CORE separados en FreeCAD
-//           sobre una copia del modelo; ver tools/split_tapa.py)
+//           cad_fuente/core_cad.json  (del modelo FreeCAD actual del CORE: carcasa dividida en tapa y
+//           cuerpo, y las piezas que cambiaron respecto del kit; ver tools/exportar_core.py)
 // Salida:   public/models/nodo.glb, public/models/core.glb, tools/piezas_bbox.json
 import fs from 'node:fs';
 import path from 'node:path';
@@ -127,22 +127,17 @@ async function main() {
   {
     const man = JSON.parse(fs.readFileSync(path.join(VISOR, 'core.json'), 'utf8'));
     const buf = readB64(path.join(VISOR, 'core.b64.txt'));
-    const split = JSON.parse(fs.readFileSync(path.join(ROOT, 'cad_fuente', 'core_tapa_split.json'), 'utf8'));
-    const pieces = [];
-    let carcasaBB = null;
-    for (const p of man.piezas) {
-      const pos = slice(buf, p.pos, Float32Array), nrm = slice(buf, p.nrm, Float32Array), idx = slice(buf, p.idx, Uint32Array);
-      if (p.id === 'Carcasa_unibody') { carcasaBB = bbox(pos); continue; }
-      const pbr = KIND_PBR[p.kind] || KIND_PBR.plastico;
-      pieces.push({ id: generico(p.id), pos, nrm, idx, matKey: p.kind, color: p.color, rough: pbr.rough, metal: pbr.metal,
-        extras: { kind: p.kind } });
-    }
+    // carcasa (tapa y cuerpo) y piezas que cambiaron en el modelo FreeCAD actual (tools/exportar_core.py)
+    const cad = JSON.parse(fs.readFileSync(path.join(ROOT, 'cad_fuente', 'core_cad.json'), 'utf8'));
     // FreeCAD (x, y, z) -> three (x, z, -y) con el mismo centrado que el visor del kit
+    let carcasaBB = null;
+    for (const p of man.piezas) if (p.id === 'Carcasa_unibody') carcasaBB = bbox(slice(buf, p.pos, Float32Array));
     // caja exacta de la carcasa en coordenadas FreeCAD, medida sobre las mallas (BoundBox se agranda en curvas)
-    const fb = bbox(new Float32Array([...split.tapa.pos, ...split.cuerpo.pos]));
-    const [fx0, fy0, fz0, fx1, fy1, fz1] = [...fb.min, ...fb.max];
+    const fb = bbox(new Float32Array(cad.carcasa.pos));
+    const [fx0, fy0, fz0, fx1, fy1] = [...fb.min, ...fb.max];
     const off = [carcasaBB.min[0] - fx0, carcasaBB.min[1] - fz0, carcasaBB.min[2] + fy1];
-    const chk = [fx1 + off[0] - carcasaBB.max[0], fz1 + off[1] - carcasaBB.max[1], -fy0 + off[2] - carcasaBB.max[2]];
+    // el CAD puede cambiar de alto; el ancho y el fondo tienen que coincidir con el visor del kit
+    const chk = [fx1 + off[0] - carcasaBB.max[0], -fy0 + off[2] - carcasaBB.max[2]];
     const toThree = m => {
       const P = new Float32Array(m.pos.length), N = new Float32Array(m.nrm.length);
       for (let i = 0; i < m.pos.length; i += 3) {
@@ -151,6 +146,17 @@ async function main() {
       }
       return { pos: P, nrm: N, idx: new Uint32Array(m.idx) };
     };
+    const pieces = [];
+    for (const p of man.piezas) {
+      if (p.id === 'Carcasa_unibody') continue;
+      const nueva = cad.piezas[p.id];
+      const geo = nueva ? toThree(nueva)
+        : { pos: slice(buf, p.pos, Float32Array), nrm: slice(buf, p.nrm, Float32Array), idx: slice(buf, p.idx, Uint32Array) };
+      const pbr = KIND_PBR[p.kind] || KIND_PBR.plastico;
+      pieces.push({ id: generico(p.id), ...geo, matKey: p.kind, color: p.color, rough: pbr.rough, metal: pbr.metal,
+        extras: { kind: p.kind } });
+    }
+    const split = cad;
     const col = [0.1255, 0.1373, 0.1608];
     for (const [id, m] of [['Carcasa_cuerpo', split.cuerpo], ['Carcasa_tapa', split.tapa]]) {
       pieces.unshift({ id, ...toThree(m), matKey: 'carcasa', color: col, rough: 0.5, metal: 0, extras: { kind: 'carcasa' } });
@@ -166,6 +172,7 @@ async function main() {
   fs.writeFileSync(path.join(HERE, 'piezas_bbox.json'), JSON.stringify(informe, null, 1));
   for (const f of ['nodo.glb', 'core.glb']) console.log(f, (fs.statSync(path.join(OUT, f)).size / 1048576).toFixed(2), 'MB');
   console.log('NODO', informe.nodo.piezas, 'piezas', informe.nodo.tris, 'triángulos');
-  console.log('CORE', informe.core.piezas, 'piezas', informe.core.tris, 'triángulos', 'alineación tapa', informe.core.control_alineacion_mm);
+  console.log('CORE', informe.core.piezas, 'piezas', informe.core.tris, 'triángulos', 'alto', cad_alto(informe), 'mm', 'alineación x/z', informe.core.control_alineacion_mm);
 }
+const cad_alto = (inf) => Math.max(...Object.values(inf.core.bbox).map((b) => b.max[1]));
 main().catch(e => { console.error(e); process.exit(1); });

@@ -42,7 +42,8 @@ instalado (playwright-core, no descarga navegadores).
 | `npm run primer-plano -- [url] [carpeta] [escala]` | Primeros planos de los dispositivos a alta densidad de píxeles. |
 | `npm run renders -- [url] [carpeta]` | Imágenes limpias (`?limpio`) para `public/renders/`. |
 
-`npm run modelos` regenera `public/models/*.glb` a partir de los modelos de diseño. Necesita
+`npm run modelos` regenera `public/models/*.glb` a partir de los modelos de diseño (antes, si cambió el CAD del CORE:
+`freecadcmd tools/exportar_core.py`, que actualiza `cad_fuente/core_cad.json`). Necesita
 material del proyecto que no forma parte de este repositorio.
 
 ## Estructura
