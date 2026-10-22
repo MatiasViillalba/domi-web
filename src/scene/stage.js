@@ -7,6 +7,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { HorizontalBlurShader } from 'three/addons/shaders/HorizontalBlurShader.js';
 import { VerticalBlurShader } from 'three/addons/shaders/VerticalBlurShader.js';
+import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 
 export const BG = new THREE.Color('#08090b');
 
@@ -22,10 +23,16 @@ export function detectarCalidad() {
   // si los cuadros no alcanzan, la calidad adaptativa baja la resolución de a poco
   const dpr = Math.max(1, devicePixelRatio || 1);
   const q = {
-    alta: { pr: Math.min(2, dpr * 1.5), msaa: 4, bloom: true, sombra: 1024 },
-    media: { pr: Math.min(1.75, dpr * 1.2), msaa: 4, bloom: true, sombra: 512 },
-    baja: { pr: Math.min(1.5, dpr), msaa: 2, bloom: false, sombra: 256 },
+    alta: { pr: Math.min(1.25, dpr), msaa: 0, bloom: true, sombra: 1024 },
+    media: { pr: Math.min(1.25, dpr), msaa: 0, bloom: true, sombra: 512 },
+    baja: { pr: Math.min(1.25, dpr), msaa: 0, bloom: false, sombra: 256 },
   }[nivel];
+  // parámetros para medir rendimiento: ?pr=1.25&msaa=2&bloom=0&sombra=0
+  const qs = new URLSearchParams(location.search);
+  if (+qs.get('pr') > 0) q.pr = +qs.get('pr');
+  if (qs.has('msaa')) q.msaa = +qs.get('msaa');
+  if (qs.get('bloom') === '0') q.bloom = false;
+  q.sinSombra = qs.get('sombra') === '0';
   return { nivel, movil, ...q };
 }
 
@@ -51,7 +58,7 @@ function ambienteEstudio() {
   g.fillStyle = gr; g.fillRect(0, 0, 8, 256);
   const deg = new THREE.CanvasTexture(c); deg.colorSpace = THREE.SRGBColorSpace;
   // centrada unos 10° por debajo del horizonte: es lo que reflejan los frentes vistos desde una cámara apenas elevada
-  const frente = new THREE.Mesh(new THREE.PlaneGeometry(7, 4.2), new THREE.MeshBasicMaterial({ map: deg, color: new THREE.Color(0xffffff).multiplyScalar(4), side: THREE.DoubleSide }));
+  const frente = new THREE.Mesh(new THREE.PlaneGeometry(7, 4.2), new THREE.MeshBasicMaterial({ map: deg, color: new THREE.Color(0xffffff).multiplyScalar(2), side: THREE.DoubleSide }));
   frente.position.set(-0.8, -0.8, 4.85); frente.rotation.y = Math.PI; s.add(frente);
   // tira cenital fina sobre el frente: línea de luz nítida en el canto superior
   panel(6.0, 0.25, 4.0, [0, 6.2, 2.6], [Math.PI / 2.6, 0, 0]);
@@ -190,6 +197,9 @@ export function crearEscenario(canvas, Q) {
   composer.addPass(new OutputPass());
   const terminacion = new ShaderPass(Terminacion);
   composer.addPass(terminacion);
+  const fxaa = new ShaderPass(FXAAShader);
+  fxaa.enabled = Q.msaa === 0;
+  composer.addPass(fxaa);
 
   let w = 1, h = 1;
   function resize() {
@@ -198,6 +208,8 @@ export function crearEscenario(canvas, Q) {
     composer.setPixelRatio(renderer.getPixelRatio());
     composer.setSize(w, h);
     bloom.resolution.set(w / 2, h / 2);
+    const pr = renderer.getPixelRatio();
+    fxaa.material.uniforms.resolution.value.set(1 / (w * pr), 1 / (h * pr));
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
   }

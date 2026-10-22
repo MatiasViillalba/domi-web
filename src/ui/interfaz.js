@@ -23,6 +23,7 @@ export class Interfaz {
     this.armarCadena();
     this.armarConfig();
     this.armarExplorar();
+    this.colorRecorrido();
     addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
       if (this.explorando) this.salirExplorar();
@@ -83,12 +84,17 @@ export class Interfaz {
       if (v !== f.v) { f.v = v; f.el.style.setProperty('--velo', v); }
     }
     // navegación
-    this.nav.classList.toggle('solida', scrollY > 24);
-    const max = document.documentElement.scrollHeight - innerHeight;
-    this.progreso.style.setProperty('--prog', (scrollY / Math.max(1, max)).toFixed(4));
+    // (posición del scroll y alto de la página ya medidos por el director: no se fuerza el diseño de la página)
+    const solida = D.y > 24;
+    if (solida !== this.navSolida) { this.navSolida = solida; this.nav.classList.toggle('solida', solida); }
+    const prog = (D.y / D.maxScroll).toFixed(3);
+    if (prog !== this.progPrev) { this.progPrev = prog; this.progreso.style.setProperty('--prog', prog); }
     const mapa = { ensamblaje: 'interior' };
     const activa = mapa[sec] || sec;
-    for (const a of this.navLinks) a.classList.toggle('activo', a.getAttribute('href') === '#' + activa);
+    if (activa !== this.navActiva) {
+      this.navActiva = activa;
+      for (const a of this.navLinks) a.classList.toggle('activo', a.getAttribute('href') === '#' + activa);
+    }
 
     // color del estado activo tiñe la interfaz
     const d = sec === 'core-exterior' ? this.disp.core : this.disp.nodo;
@@ -100,6 +106,8 @@ export class Interfaz {
 
     // al salir de una sección se restablecen sus controles
     if (sec !== this.secPrev) {
+      if (sec === 'personaliza') this.aplicarColores();
+      else if (this.secPrev === 'personaliza') this.colorRecorrido();
       if (this.secPrev === 'privacidad' && this.disp.nodo.privado) this.setPrivado(false);
       if (this.secPrev === 'interior') { this.override = {}; this.seleccionar(null, null); this.modoInterior(false); }
       if (this.explorando && sec !== this.secPrev && this.secPrev !== null) this.salirExplorar();
@@ -248,6 +256,10 @@ export class Interfaz {
     $$('[data-luz]').forEach((b) => b.addEventListener('click', () => { this.estadoConfig = b.dataset.luz; this.pintarConfig(); }));
     $('#btn-restablecer-config').addEventListener('click', () => { if (this.explorando) this.salirExplorar(); this.director.setProducto(this.prod); });
     this.aplicarColores();
+  }
+  colorRecorrido() {
+    this.disp.nodo.setColores('grafito', 'grafito');
+    this.disp.core.setColores('grafito', 'grafito');
   }
   destinos() { return this.prod === 'ambos' ? ['nodo', 'core'] : [this.prod]; }
   aplicarColores() {

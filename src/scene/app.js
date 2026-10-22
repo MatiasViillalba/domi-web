@@ -50,6 +50,14 @@ export async function iniciar({ base, alProgreso, reducido }) {
   document.fonts?.ready.then(() => director.medir());
   director.saltar();
 
+  // Compila todos los materiales mientras está la pantalla de carga: si se compilan la primera vez que una pieza
+  // aparece en cuadro (el CORE recién en su sección, la vista abierta, la rejilla), el scroll se traba un instante.
+  nodo.root.visible = core.root.visible = true;
+  E.renderer.compile(E.scene, E.camera);
+  for (const d of [nodo, core]) { d.setExplode(1); d.update(0, 0, 1); }
+  E.renderer.compile(E.scene, E.camera);
+  for (const d of [nodo, core]) { d.setExplode(0); d.update(0, 0, 0); }
+
   // ---------------------------------------------------------------- selección de piezas (interior)
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   let abajo = null;
@@ -214,19 +222,25 @@ export async function iniciar({ base, alProgreso, reducido }) {
 
   // ---------------------------------------------------------------- bucle
   const reloj = new THREE.Clock();
-  let t = 0, firmaSombra = '', cuadros = 0, lento = 0;
+  let t = 0, firmaSombra = '', cuadros = 0, lento = 0, ventana = 0, fadePrev = '';
   const ocultarSombra = [E.piso, E.charco, E.brilloEstado, E.fondo, haz.mesh];
+  const capaEtiquetas = document.getElementById('etiquetas');
+  const PR_MIN = Q.movil ? 0.75 : 1;
   function cuadro() {
     requestAnimationFrame(cuadro);
     const dt = Math.min(reloj.getDelta(), 0.05);
     if (!reducido) t += dt;
     const s = director.paso(dt);
     const sec = director.activa();
+    // medidas de los textos ANTES de tocar estilos: así se usan las del cuadro anterior, ya calculadas
+    const { w, h } = E.size();
+    const franja = ui.franjaLibre(sec);
+    const zona = w >= 900 && ui.zonaTexto(sec) ? { x0: 0, x1: ui.bordeTexto(sec) } : null;
     ui.actualizar(sec, dt);
 
     // fundido al final (comprar y especificaciones): no se dibuja si no se ve
-    canvas.style.opacity = s.fade.toFixed(3);
-    document.getElementById('etiquetas').style.opacity = s.fade.toFixed(3);
+    const fade = s.fade.toFixed(2);
+    if (fade !== fadePrev) { fadePrev = fade; canvas.style.opacity = fade; capaEtiquetas.style.opacity = fade; }
     if (s.fade < 0.01 && !controls.enabled) return;
 
     // apertura: el scroll manda salvo que el usuario use «Abrir» / «Ensamblar»
@@ -270,24 +284,24 @@ export async function iniciar({ base, alProgreso, reducido }) {
 
     // sombras de contacto: solo cuando algo se mueve
     const firma = [s.nX, s.nZ, s.nRot, s.nExpEf, s.cX, s.cZ, s.cRot, s.cExpEf].map((x) => x.toFixed(1)).join();
-    const cadaN = Q.nivel === 'alta' ? 1 : 3;
-    if ((firma !== firmaSombra && cuadros % cadaN === 0) || cuadros % 30 === 0) { E.sombra.render(E.scene, ocultarSombra); firmaSombra = firma; }
+    const cadaN = Q.nivel === 'alta' ? 2 : 4;
+    if (!Q.sinSombra && ((firma !== firmaSombra && cuadros % cadaN === 0) || cuadros % 30 === 0)) { E.sombra.render(E.scene, ocultarSombra); firmaSombra = firma; }
 
     E.terminacion.uniforms.uTime.value = t;
     E.composer.render();
 
-    const { w, h } = E.size();
-    etiquetas.render(lg.lista, { w, h, centroX, compacto: w < 700, caja: cajaPantalla(w), franja: ui.franjaLibre(sec),
-      zona: w >= 900 && ui.zonaTexto(sec) ? { x0: 0, x1: ui.bordeTexto(sec) } : null });
+    etiquetas.render(lg.lista, { w, h, centroX, compacto: w < 700, caja: cajaPantalla(w), franja, zona });
 
-    // calidad adaptativa
-    cuadros++;
-    if (dt > 1 / 38) lento += dt; else lento = Math.max(0, lento - dt * 0.5);
-    if (lento > 1.5) {
-      lento = 0;
-      const pr = E.renderer.getPixelRatio();
-      if (pr > 0.8) { E.renderer.setPixelRatio(Math.max(0.75, pr - 0.25)); E.resize(); }
-      else if (E.bloom.enabled) E.bloom.enabled = false;
+    // calidad adaptativa: si en una ventana de 2 s más de un cuarto de los cuadros tardan más de 1/45 s,
+    // baja la resolución un escalón (sin pasar de la densidad real de la pantalla) y, al final, apaga el bloom
+    cuadros++; ventana += dt; if (dt > 1 / 45) lento += dt;
+    if (ventana > 2) {
+      if (lento / ventana > 0.25) {
+        const pr = E.renderer.getPixelRatio();
+        if (pr > PR_MIN + 0.01) { E.renderer.setPixelRatio(Math.max(PR_MIN, pr - 0.25)); E.resize(); }
+        else if (E.bloom.enabled) E.bloom.enabled = false;
+      }
+      ventana = 0; lento = 0;
     }
   }
   cuadro();

@@ -19,6 +19,8 @@ export class Director {
   medir() {
     const vh = innerHeight;
     this.vh = vh;
+    this._y = scrollY;
+    this.maxScroll = Math.max(1, document.documentElement.scrollHeight - vh);
     this.secciones.clear();
     document.querySelectorAll('[data-escena]').forEach((el) => {
       const r = el.getBoundingClientRect();
@@ -43,19 +45,23 @@ export class Director {
   }
   setProducto(p) { this.producto = p; this.armarAnclas(); }
 
+  // El scroll se lee UNA vez por cuadro (en paso). Leer scrollY después de cambiar estilos obliga al navegador
+  // a recalcular el diseño de la página en el momento: hacerlo por cada texto trababa el recorrido.
+  get y() { return this._y ?? scrollY; }
+
   progreso(id) {
     const s = this.secciones.get(id); if (!s) return -1;
-    return Math.min(1, Math.max(0, (scrollY - s.top) / s.largo));
+    return Math.min(1, Math.max(0, (this.y - s.top) / s.largo));
   }
   // sección activa (la que ocupa el centro de la pantalla)
   activa() {
-    const y = scrollY + this.vh * 0.5;
+    const y = this.y + this.vh * 0.5;
     for (const [id, s] of this.secciones) if (y >= s.top && y < s.top + s.alto) return id;
     return null;
   }
 
   calcular() {
-    const y = scrollY, A = this.anclas;
+    const y = this.y, A = this.anclas;
     if (!A.length) return this.objetivo;
     let i = 0;
     while (i < A.length - 1 && A[i + 1].y <= y) i++;
@@ -73,10 +79,11 @@ export class Director {
 
   // avanza el estado suavizado hacia el objetivo (el leve retardo da sensación de peso)
   paso(dt) {
+    this._y = scrollY;
     const o = this.calcular(), e = this.estado;
     const k = this.reducido ? 1 : 1 - Math.exp(-dt * 4.2);
     for (const c of CLAVES) e[c] += (c === 'az' ? wrap(o[c] - e[c]) : o[c] - e[c]) * k;
     return e;
   }
-  saltar() { this.calcular(); Object.assign(this.estado, this.objetivo); }
+  saltar() { this._y = scrollY; this.calcular(); Object.assign(this.estado, this.objetivo); }
 }
