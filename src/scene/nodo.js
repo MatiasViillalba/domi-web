@@ -49,8 +49,6 @@ function perforar(mat) {
   mat.customProgramCacheKey = () => 'rejilla-perforada';
 }
 
-function ruido(a) { return Math.sin(a * 1.7) * 0.5 + Math.sin(a * 3.1 + 1.3) * 0.3 + Math.sin(a * 5.3 + 0.4) * 0.2; }
-
 export class Nodo extends Dispositivo {
   constructor(gltfRoot, Q) {
     super(NODO, gltfRoot);
@@ -195,9 +193,6 @@ export class Nodo extends Dispositivo {
       } else if (s === 'respondiendo') {
         const env = 0.5 + 0.5 * Math.abs(Math.sin(t * 5.2) * Math.sin(t * 1.9 + 0.6));
         I = Math.exp(-((v / 0.28) ** 2)) * (0.55 + 0.45 * Math.cos(x * Math.PI / 2)) * env;
-      } else if (s === 'voz') {
-        const h = 0.1 + 0.42 * Math.abs(ruido(t * 2.4 + Math.abs(c - cc) * 0.9)) * (1 - 0.5 * Math.abs(x));
-        I = Math.max(0, Math.min(1, (h - Math.abs(v - 0.5)) * 6)) * (0.6 + 0.4 * Math.cos(x * Math.PI / 2));
       }
       out[c * rows + r] = I;
     }

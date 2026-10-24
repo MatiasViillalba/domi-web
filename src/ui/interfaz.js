@@ -240,7 +240,7 @@ export class Interfaz {
     const muestra = (parte) => Object.entries(COLORES).map(([k, c]) => `<button type="button" role="radio" aria-checked="false" data-parte="${parte}" data-color="${k}" style="--c:${c.hex}" aria-label="${parte === 'cuerpo' ? 'Cuerpo' : 'Tapa'} ${c.nombre}" title="${c.nombre}"></button>`).join('');
     $('#muestras-cuerpo').innerHTML = muestra('cuerpo');
     $('#muestras-tapa').innerHTML = muestra('tapa');
-    const lucesOrden = ['reposo', 'escuchando', 'pensando', 'respondiendo', 'voz'];
+    const lucesOrden = ['reposo', 'escuchando', 'pensando', 'respondiendo'];
     $('#luces').innerHTML = lucesOrden.map((k) => `<button type="button" data-luz="${k}" aria-pressed="false" style="--c:${ESTADOS[k].color}"><i></i>${ESTADOS[k].nombre}</button>`).join('');
 
     $$('[data-prod]').forEach((b) => b.addEventListener('click', () => { this.prod = b.dataset.prod; this.director.setProducto(this.prod); this.pintarConfig(); }));

@@ -151,8 +151,8 @@ export async function iniciar({ base, alProgreso, reducido }) {
       lista.push({ key: 'sis:nodo', pos: nodo.centro('BandaSuperior', [0, 26, 0]), titulo: 'DOMI NODO', sub: 'Te escucha y te responde', alpha: p > 0.3 ? 1 : 0 });
       lista.push({ key: 'sis:core', pos: core.centro('Carcasa_tapa', [0, 8, 0]), titulo: 'DOMI CORE', sub: 'Entiende lo que pedís', alpha: p > 0.38 ? 1 : 0 });
     } else if (sec === 'nodo-exterior') {
-      const orden = ['escuchando', 'pensando', 'respondiendo', 'voz'];
-      estN = p < 0.14 ? 'reposo' : orden[Math.min(3, Math.floor(((p - 0.14) / 0.86) * 4))];
+      const orden = ['escuchando', 'pensando', 'respondiendo'];
+      estN = p < 0.14 ? 'reposo' : orden[Math.min(2, Math.floor(((p - 0.14) / 0.86) * 3))];
       const a = p > 0.16 ? 1 : 0;
       lista.push({ key: 'ne:tapa', pos: nodo.centro('Vidrio', [10, 1, -8]), titulo: 'Tapa táctil', sub: 'Un toque apaga el micrófono', alpha: a });
       lista.push({ key: 'ne:mic', pos: nodo.centro('Juntas', [46, 0, 0]), titulo: 'Micrófonos', sub: 'Te escuchan desde cualquier lado', alpha: a, normal: N(1, 0, 0, 'nodo') });
@@ -195,7 +195,7 @@ export async function iniciar({ base, alProgreso, reducido }) {
         lista.push({ key: 'ia:hab', pos: nodo.centro('MatrizLED', [0, 0, 6]), titulo: 'DOMI responde', sub: 'Desde el NODO donde hablaste', alpha: qq > 0.4 ? 1 : 0 });
       }
       ui.resaltarCadena(sel);
-    } else if (sec === 'ensamblaje') { estN = estC = p < 0.55 ? 'voz' : 'reposo'; }
+    } else if (sec === 'ensamblaje') { estN = estC = p < 0.55 ? 'respondiendo' : 'reposo'; }
     else if (sec === 'personaliza') { estN = estC = ui.estadoConfig || 'reposo'; }
     if (sec !== 'inteligencia') ui.resaltarCadena(null);
 

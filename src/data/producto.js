@@ -5,7 +5,6 @@ export const ESTADOS = {
   escuchando:   { id: 'escuchando', nombre: 'Escuchando', color: '#34E07A' },
   pensando:     { id: 'pensando', nombre: 'Pensando', color: '#3D7BFF' },
   respondiendo: { id: 'respondiendo', nombre: 'Respondiendo', color: '#5A6BFF' },
-  voz:          { id: 'voz', nombre: 'Voz en acción', color: '#2FD3FF' },
   silencio:     { id: 'silencio', nombre: 'Micrófono apagado', color: '#FF453A' },
 };
 
@@ -14,7 +13,7 @@ export const CADENA = [
   { paso: 'Decís «DOMI»', texto: 'El NODO reconoce su nombre por su cuenta. Hasta ese momento no envía nada.', estado: 'escuchando' },
   { paso: 'Tu pedido viaja al CORE', texto: 'Por el Wi-Fi de tu casa, sin salir a internet.', estado: 'escuchando' },
   { paso: 'El CORE lo entiende', texto: 'Pasa tu voz a texto y entiende qué querés, ahí mismo.', estado: 'pensando' },
-  { paso: 'DOMI te responde', texto: 'Con voz natural, en español, desde el NODO donde hablaste.', estado: 'voz' },
+  { paso: 'DOMI te responde', texto: 'Con voz natural, en español, desde el NODO donde hablaste.', estado: 'respondiendo' },
 ];
 
 // Terminaciones del configurador
