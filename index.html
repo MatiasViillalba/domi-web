@@ -3,25 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>DOMI · Tu casa te escucha. Nadie más.</title>
-  <meta name="description" content="DOMI es el asistente de voz para el hogar que entiende y responde dentro de tu casa, sin mandar tu voz a ningún servidor. Un CORE para toda la casa y un NODO en cada ambiente.">
+  <title>DOMI · Asistente de voz local para empresas</title>
+  <meta name="description" content="DOMI procesa conversaciones en la red local de la empresa. Un CORE central y un NODO con batería recargable por ambiente.">
   <meta name="theme-color" content="#08090b">
-  <meta property="og:title" content="DOMI · Tu casa te escucha. Nadie más.">
-  <meta property="og:description" content="El asistente de voz que piensa dentro de tu casa. Sin nube y sin abonos.">
-  <meta property="og:image" content="renders/hero.jpg">
+  <meta property="og:title" content="DOMI · Asistente de voz local para empresas">
+  <meta property="og:description" content="Un CORE central y un NODO con batería recargable por ambiente. La conversación se procesa en la red de la empresa.">
+  <meta property="og:image" content="renders/domi-ae4.webp">
   <link rel="icon" href="brand/DOMI_simbolo_blanco.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="/src/styles/main.css">
+  <link rel="stylesheet" href="/src/styles/producto-ae4.css">
 </head>
-<body>
+<body class="cargando-3d">
   <a class="saltar" href="#contenido">Saltar al contenido</a>
 
   <!-- ===================================================== carga -->
   <div id="carga" role="status" aria-live="polite">
-    <svg class="carga-simbolo" viewBox="167 73 974 974" aria-hidden="true"><path pathLength="1" fill-rule="evenodd" d="M275 140H655C887 140 1074 328 1074 560C1074 792 887 980 655 980H275Q235 980 235 940V180Q235 140 275 140Z M376 501L599 340Q617 326 637 341L843 499Q855 510 855 526V800Q855 830 825 830H620V680Q620 651 591 651H500Q471 651 471 680V830H394Q364 830 364 800V526Q364 511 376 501Z"/></svg>
-    <p class="carga-texto"><span>Cargando DOMI</span> <b id="carga-pct">0 %</b></p>
+    <p class="carga-texto"><span>Cargando la vista 3D</span> <b id="carga-pct">0 %</b></p>
   </div>
 
   <!-- ===================================================== escena 3D fija -->
@@ -38,15 +38,17 @@
       <img src="/brand/DOMI_simbolo_blanco.svg" alt="" width="22" height="22"><span>DOMI</span>
     </a>
     <nav aria-label="Secciones">
+      <a href="#problema">Problema</a>
+      <a href="#sistema">Solución</a>
       <a href="#nodo-exterior">NODO</a>
-      <a href="#privacidad">Privacidad</a>
       <a href="#core-exterior">CORE</a>
-      <a href="#interior">Diseño</a>
-      <a href="#inteligencia">Cómo funciona</a>
-      <a href="#personaliza">Colores</a>
-      <a href="#especificaciones">Especificaciones</a>
+      <a href="#interior">Diseño 3D</a>
+      <a href="#comparacion">Diferenciales</a>
+      <a href="#uso" class="acceso-ae4">Renders</a>
+      <a href="#panel" class="acceso-ae4">Panel</a>
+      <a href="#laminas" class="acceso-ae4">Láminas</a>
     </nav>
-    <a class="nav-comprar" href="#comprar">Comprar</a>
+    <a class="nav-comprar" href="#comprar">Precios</a>
     <div class="nav-progreso" aria-hidden="true"><i id="progreso"></i></div>
   </header>
 
@@ -56,22 +58,22 @@
     <section id="inicio" class="escena" data-escena style="--largo: 2.6">
       <div class="fijo">
         <div class="bloque centro arriba" data-in="0" data-out="0.62">
-          <p class="ceja">DOMI · Asistente de voz para el hogar</p>
-          <h1 class="titulo-hero">Tu casa te escucha.<br><span class="tenue">Nadie más.</span></h1>
-          <p class="bajada">El asistente de voz que entiende y responde dentro de tu casa. Tu voz nunca sale de ella.</p>
+          <p class="ceja">DOMI · Asistente de voz local para empresas</p>
+          <h1 class="titulo-hero">Tu oficina te escucha.<br><span class="tenue">Nadie más.</span></h1>
+          <p class="bajada">La voz de tus reuniones se procesa dentro de la red de tu empresa.</p>
         </div>
         <div class="pista-scroll" data-in="0" data-out="0.18"><span>Deslizá para descubrirlo</span><i></i></div>
-        <img class="render-alt" src="/renders/hero.jpg" alt="DOMI NODO y DOMI CORE sobre fondo oscuro, unidos por una línea de luz." loading="lazy">
+        <img class="render-alt" src="/renders/domi-ae4.webp" alt="DOMI NODO con batería y DOMI CORE del AE4." fetchpriority="high">
       </div>
     </section>
 
     <!-- 2 · Por qué DOMI -->
     <section id="problema" class="escena" data-escena style="--largo: 1.9">
       <div class="fijo">
-        <div class="bloque izq medio" data-in="0.18" data-out="0.92">
-          <p class="ceja">Por qué DOMI</p>
-          <h2>Lo que decís en casa, se queda en casa.</h2>
-          <p class="cuerpo">La mayoría de los asistentes de voz mandan lo que decís a servidores lejanos para poder entenderlo. DOMI lo entiende ahí mismo, en un equipo que vive en tu casa. Sin nube y sin abonos.</p>
+        <div class="bloque izq medio" data-in="0" data-out="0.92">
+          <p class="ceja">Problema</p>
+          <h2>Preparar la sala interrumpe la reunión.</h2>
+          <p class="cuerpo">Encender la pantalla, ajustar las luces y revisar los equipos puede requerir distintos controles. Con varias salas, también importa saber qué equipos están activos y quién tiene el micrófono encendido.</p>
         </div>
       </div>
     </section>
@@ -79,14 +81,14 @@
     <!-- 3 · El sistema -->
     <section id="sistema" class="escena" data-escena style="--largo: 2.4">
       <div class="fijo">
-        <div class="bloque centro arriba" data-in="0.12" data-out="0.94">
-          <p class="ceja">El sistema</p>
-          <h2>Un cerebro para toda la casa.</h2>
-          <p class="cuerpo ancho">El DOMI CORE hace todo el trabajo desde un rincón de tu casa. En cada ambiente, un DOMI NODO te escucha y te responde. Se hablan por tu Wi-Fi, sin salir a internet.</p>
+        <div class="bloque centro arriba" data-in="0" data-out="0.94">
+          <p class="ceja">Solución</p>
+          <h2>Un NODO por sala. Un CORE para coordinarlas.</h2>
+          <p class="cuerpo ancho">El NODO recibe el pedido en la sala y el CORE coordina la acción por la red local. El panel reúne los estados de los ambientes y el diseño prevé un control del micrófono en la tapa del NODO.</p>
         </div>
         <dl class="datos-pie" data-in="0.5" data-out="0.96">
           <div><dt>DOMI NODO</dt><dd>Uno en cada ambiente</dd></div>
-          <div><dt>DOMI CORE</dt><dd>Uno para toda la casa</dd></div>
+          <div><dt>DOMI CORE</dt><dd>Uno central en la instalación</dd></div>
         </dl>
       </div>
     </section>
@@ -97,18 +99,18 @@
         <div class="bloque izq medio" data-in="0.02" data-out="0.15">
           <p class="ceja">DOMI NODO</p>
           <h2>Te escucha desde cualquier rincón.<br><span class="tenue">Y te responde en 360°.</span></h2>
-          <p class="cuerpo">Once centímetros de alto, dos micrófonos, un parlante que llena el ambiente y una luz que se ve a través de la rejilla.</p>
+          <p class="cuerpo">Dos micrófonos, un parlante de 50 mm y luz en la parte baja de la rejilla. La batería recargable te permite ubicarlo donde lo necesites.</p>
         </div>
         <div class="bloque izq medio" data-in="0.17" data-out="0.98">
           <p class="ceja">Luz de estado</p>
           <h2>Una luz que te dice qué está pasando.</h2>
           <ol class="estados" id="lista-estados">
-            <li data-estado="escuchando" style="--c:#34E07A"><i></i><div><b>Escuchando</b><span>Se enciende en verde cuando decís «DOMI».</span></div></li>
-            <li data-estado="pensando" style="--c:#3D7BFF"><i></i><div><b>Pensando</b><span>Un anillo azul gira mientras entiende tu pedido.</span></div></li>
+            <li data-estado="escuchando" style="--c:#34E07A"><i></i><div><b>Escuchando</b><span>La luz verde se ve en la rejilla baja cuando decís «DOMI».</span></div></li>
+            <li data-estado="pensando" style="--c:#3D7BFF"><i></i><div><b>Pensando</b><span>La luz baja cambia a azul mientras el CORE procesa el pedido.</span></div></li>
             <li data-estado="respondiendo" style="--c:#5A6BFF"><i></i><div><b>Respondiendo</b><span>Mientras DOMI te habla, la luz baja y late con cada palabra.</span></div></li>
           </ol>
         </div>
-        <img class="render-alt" src="/renders/nodo.jpg" alt="DOMI NODO con la franja superior encendida en verde." loading="lazy">
+        <img class="render-alt" src="/renders/nodo-bateria-ae4.webp" alt="DOMI NODO con el anillo inferior de batería." loading="lazy">
       </div>
     </section>
 
@@ -133,20 +135,20 @@
       <div class="fijo">
         <div class="bloque izq medio" data-in="0.04" data-out="0.4">
           <p class="ceja">DOMI CORE</p>
-          <h2>El cerebro, en una caja de 11 centímetros.</h2>
-          <p class="cuerpo">Entiende lo que le pedís y te responde con voz natural. Todo pasa adentro de tu casa, sin abonos mensuales.</p>
+          <h2>Procesamiento local con Ryzen PRO.</h2>
+          <p class="cuerpo">El CORE del AE4 incorpora al diseño un AMD Ryzen 5 PRO 8640U. Reconoce la voz, interpreta el pedido y prepara la respuesta dentro de la red de la empresa.</p>
         </div>
         <div class="bloque izq medio" data-in="0.44" data-out="0.7">
           <p class="ceja">Instalación</p>
           <h2>Un solo cable.</h2>
-          <p class="cuerpo">Lo enchufás, lo conectás a tu Wi-Fi y listo. Atrás solo está la entrada de energía.</p>
+          <p class="cuerpo">El CORE se instala en un lugar fijo, ventilado y conectado a la red. Su entrada de alimentación USB-C PD está atrás.</p>
         </div>
         <div class="bloque izq medio" data-in="0.74" data-out="0.98">
           <p class="ceja">Diseño</p>
           <h2>Una base que respira.</h2>
           <p class="cuerpo">El aire entra por adelante y sale por atrás, a través de una base que parece flotar. Sin tornillos a la vista.</p>
         </div>
-        <img class="render-alt" src="/renders/core.jpg" alt="DOMI CORE: caja grafito de esquinas redondeadas con barra de luz frontal." loading="lazy">
+        <img class="render-alt" src="/renders/core-ae4.webp" alt="DOMI CORE del AE4 con el símbolo Núcleo y la barra frontal de luz." loading="lazy">
       </div>
     </section>
 
@@ -156,12 +158,12 @@
         <div class="bloque izq arriba-izq" data-in="0.03" data-out="0.46">
           <p class="ceja">Diseño · NODO</p>
           <h2>Pensado de adentro hacia afuera.</h2>
-          <p class="cuerpo">El parlante abajo para que el sonido salga parejo, la luz en el medio y los micrófonos cerca de la tapa. Cada parte, donde tiene que estar.</p>
+          <p class="cuerpo">El parlante está debajo de la rejilla y los micrófonos cerca de la tapa. El módulo de batería se aloja en la base.</p>
         </div>
         <div class="bloque izq arriba-izq" data-in="0.5" data-out="0.98">
           <p class="ceja">Diseño · CORE</p>
           <h2>Mucha inteligencia, poco espacio.</h2>
-          <p class="cuerpo">Procesamiento propio, disipadores de aluminio y ventilación por la base. Todo en once centímetros.</p>
+          <p class="cuerpo">Ryzen 5 PRO, disipadores de aluminio y ventilación por la base en una caja de 115 × 105 × 60 mm.</p>
         </div>
 
         <div class="taller interactivo" data-in="0.06" data-out="0.99">
@@ -189,7 +191,7 @@
           <p id="ficha-texto"></p>
           <button type="button" class="boton chico" id="ficha-cerrar">Volver al conjunto</button>
         </div>
-        <img class="render-alt" src="/renders/interior_nodo.jpg" alt="DOMI NODO abierto: rejilla, tapa, micrófonos, luz y parlante." loading="lazy">
+        <img class="render-alt" src="/renders/corte-bateria-ae4.webp" alt="Corte CAD del DOMI NODO con el alojamiento de batería en la base." loading="lazy">
       </div>
     </section>
 
@@ -198,14 +200,14 @@
       <div class="fijo">
         <div class="bloque izq arriba-izq ancho-ia interactivo" data-in="0.04" data-out="0.98">
           <p class="ceja">Cómo funciona</p>
-          <h2>Le hablás. Te responde. En menos de tres segundos.<sup class="ref"><a href="#nota-1">1</a></sup></h2>
+          <h2>Le hablás. Te responde por voz.</h2>
           <ol class="pasos" id="pasos"></ol>
         </div>
         <div class="demo interactivo" id="demo" aria-live="polite" data-in="0.1" data-out="0.98">
           <p class="demo-etq">Ejemplo · no usa tu micrófono</p>
-          <p class="demo-linea" data-paso="0"><span class="demo-k">Vos</span><q id="demo-frase">DOMI, apagá la luz del living.</q></p>
-          <p class="demo-linea" data-paso="2"><span class="demo-k">Entiende</span><code>apagar · luz · living</code></p>
-          <p class="demo-linea" data-paso="3"><span class="demo-k">DOMI</span><q>Listo, apagué la luz del living.</q></p>
+          <p class="demo-linea" data-paso="0"><span class="demo-k">Vos</span><q id="demo-frase">DOMI, ¿qué quedó pendiente de la reunión?</q></p>
+          <p class="demo-linea" data-paso="2"><span class="demo-k">Entiende</span><code>pendientes · reunión</code></p>
+          <p class="demo-linea" data-paso="3"><span class="demo-k">DOMI</span><q>Quedó pendiente cerrar el presupuesto y confirmar la próxima reunión.</q></p>
         </div>
       </div>
     </section>
@@ -226,7 +228,7 @@
       <div class="fijo">
         <div class="bloque centro arriba" data-in="0.08" data-out="1.01">
           <p class="ceja">Colores</p>
-          <h2>Elegí cómo se ve en tu casa.</h2>
+          <h2>Explorá las terminaciones.</h2>
         </div>
         <div class="config interactivo" data-in="0.18" data-out="1.01" id="config">
           <div class="config-fila">
@@ -259,36 +261,78 @@
       </div>
     </section>
 
-    <!-- 11 · Comprar -->
+    <section id="bateria" class="plano" data-escena>
+      <div class="contenedor bateria">
+        <img src="/renders/nodo-bateria-ae4.webp" alt="DOMI NODO con el módulo de batería integrado en la base." fetchpriority="low">
+        <div>
+          <p class="ceja">DOMI NODO</p>
+          <h2 class="grande">Batería recargable integrada.</h2>
+          <p class="cuerpo ancho">El módulo inferior mide 28,6 mm de alto. La batería propuesta es de 18,72 Wh, con un objetivo de 4–6 horas de autonomía pendiente de ensayo.</p>
+          <a class="boton enlace-especificaciones" href="#nodo-exterior">Ver NODO en 3D</a>
+        </div>
+      </div>
+    </section>
+
     <section id="comprar" class="plano" data-escena>
       <div class="contenedor">
-        <p class="ceja">Comprar</p>
-        <h2 class="grande">Una casa entera, sin abonos.</h2>
-        <p class="cuerpo ancho">Comprás el CORE una sola vez y sumás un NODO por cada ambiente.</p>
-        <div class="precios">
+        <p class="ceja">Precios y costos</p>
+        <h2 class="grande">Un CORE. Los NODO que necesites.</h2>
+        <p class="cuerpo ancho">Precios sugeridos de lanzamiento por unidad, sin impuestos ni instalación. El CORE se compra una vez por sede y cada sala nueva solo suma un NODO.</p>
+        <div class="precios precios-3">
           <article class="precio">
-            <div class="precio-foto"><img src="/renders/core.jpg" alt="" loading="lazy"></div>
+            <div class="precio-foto"><img src="/renders/core-ae4.webp" alt="" fetchpriority="low"></div>
             <h3>DOMI CORE</h3>
-            <p>El cerebro de la casa. Uno por hogar.</p>
-            <p class="monto">US$ 149</p>
-            <button type="button" class="boton" disabled>Próximamente</button>
+            <p>Una unidad central por sede, con AMD Ryzen 5 PRO 8640U y 8 GB de LPDDR5x. Procesa la voz de todas las salas en la red local.</p>
+            <p class="monto">US$ 449</p>
           </article>
           <article class="precio">
-            <div class="precio-foto"><img src="/renders/nodo.jpg" alt="" loading="lazy"></div>
-            <h3>DOMI NODO</h3>
-            <p>Escucha y habla. Uno por ambiente.</p>
-            <p class="monto">US$ 29,99</p>
-            <button type="button" class="boton" disabled>Próximamente</button>
+            <div class="precio-foto claro"><img src="/renders/nodo-cable-ae4.webp" alt="" fetchpriority="low"></div>
+            <h3>DOMI NODO con cable</h3>
+            <p>Ø96 × 110 mm, alimentado por USB-C. Para salas donde el NODO queda fijo.</p>
+            <p class="monto">US$ 39</p>
           </article>
           <article class="precio destacado">
-            <div class="precio-foto" style="--zoom: 1.25"><img src="/renders/hero.jpg" alt="" loading="lazy"></div>
-            <h3>Casa de 4 ambientes</h3>
-            <p>1 DOMI CORE + 4 DOMI NODO. Cuesta menos que poner un parlante inteligente en cada ambiente.<sup class="ref"><a href="#nota-2">2</a></sup></p>
-            <p class="monto">US$ 268,96</p>
-            <button type="button" class="boton" disabled>Próximamente</button>
+            <div class="precio-foto claro"><img src="/renders/nodo-bateria-foto-ae4.webp" alt="" fetchpriority="low"></div>
+            <h3>DOMI NODO con batería</h3>
+            <p>Ø96 × 138,6 mm, con dos celdas 18650 en el anillo inferior. Se mueve entre salas y se carga por USB-C.</p>
+            <p class="monto">US$ 59</p>
           </article>
         </div>
-        <p class="nota">Precios sugeridos en dólares estadounidenses.<sup class="ref"><a href="#nota-3">3</a></sup></p>
+        <div class="paquetes" aria-label="Precio de una sede con cuatro salas">
+          <div class="paquete"><span>Sede con cuatro salas · 1 CORE y 4 NODO con cable</span><b>US$ 605</b></div>
+          <div class="paquete"><span>Sede con cuatro salas · 1 CORE y 4 NODO con batería</span><b>US$ 685</b></div>
+        </div>
+        <section class="desglose" aria-labelledby="titulo-costos">
+          <h3 id="titulo-costos">Costo estimado de fabricación del CORE</h3>
+          <dl>
+            <div><dt>Placa con Ryzen 5 PRO 8640U y 8 GB LPDDR5x</dt><dd>US$ 270</dd></div>
+            <div><dt>Módulo eMMC de 32 GB</dt><dd>US$ 12</dd></div>
+            <div><dt>Refrigeración: disipadores y ventilador de 30 mm</dt><dd>US$ 12</dd></div>
+            <div><dt>Fuente USB-C PD de 45 W</dt><dd>US$ 20</dd></div>
+            <div><dt>Carcasa y base de PC/ABS</dt><dd>US$ 15</dd></div>
+            <div><dt>Panel frontal, entrada USB-C y cableado</dt><dd>US$ 14</dd></div>
+            <div><dt>Armado, prueba y moldes</dt><dd>US$ 20</dd></div>
+            <div class="total-costos"><dt>Costo estimado del CORE</dt><dd>≈ US$ 363</dd></div>
+          </dl>
+          <h3 class="desglose-sub">Costo estimado del NODO</h3>
+          <dl>
+            <div><dt>NODO con cable: materiales, ensamble, prueba y caja</dt><dd>US$ 18,04</dd></div>
+            <div><dt>2 celdas BAK N18650CH a US$ 2,35 por mayor</dt><dd>US$ 4,70</dd></div>
+            <div><dt>Módulo de carga DFRobot DFR1026</dt><dd>US$ 2,90</dd></div>
+            <div><dt>Anillo, soporte, protección del pack y armado</dt><dd>US$ 4,40</dd></div>
+            <div class="total-costos"><dt>Costo estimado del NODO con batería</dt><dd>≈ US$ 30</dd></div>
+          </dl>
+          <p class="nota">Referencias de componentes de noviembre de 2026, sin cotización formal. La memoria es la parte que más aumentó en el último año. <a href="https://www.eebb.com.ar/producto/bak-n18650-ch">Catálogo EEBB</a> · <a href="https://www.dfrobot.com/product-2632.html">Ficha y precio DFRobot</a>.</p>
+          <details class="costos-anteriores">
+            <summary>Precios del AE3, antes del cambio de procesador y de público</summary>
+            <dl>
+              <div><dt>CORE con RK3576 · costo estimado US$ 132</dt><dd>US$ 149</dd></div>
+              <div><dt>NODO con cable</dt><dd>US$ 29,99</dd></div>
+              <div><dt>Casa con cuatro ambientes · 1 CORE y 4 NODO</dt><dd>US$ 268,96</dd></div>
+            </dl>
+          </details>
+        </section>
+        <a class="boton enlace-especificaciones" href="#especificaciones">Ver fichas técnicas</a>
       </div>
     </section>
 
@@ -301,48 +345,192 @@
           <div>
             <h3>DOMI NODO</h3>
             <dl>
-              <div><dt>Tamaño</dt><dd>96 mm de diámetro × 110 mm de alto</dd></div>
-              <div><dt>Colores</dt><dd>Grafito, blanco, gris claro y beige. Cuerpo y tapa combinables.</dd></div>
-              <div><dt>Sonido</dt><dd>Parlante de 50 mm y 5 W con sonido en 360°</dd></div>
-              <div><dt>Micrófonos</dt><dd>2 micrófonos</dd></div>
-              <div><dt>Palabra de activación</dt><dd>«DOMI», reconocida en el propio NODO</dd></div>
-              <div><dt>Luz de estado</dt><dd>91 luces LED de color y anillo de luz en la base</dd></div>
-              <div><dt>Privacidad</dt><dd>Tapa táctil que desconecta los micrófonos por hardware · ícono rojo de micrófono apagado</dd></div>
+              <div><dt>Tamaño</dt><dd>Ø96 × 110 mm con cable · Ø96 × 138,6 mm con batería</dd></div>
+              <div><dt>Alimentación</dt><dd>USB-C 5 V · versión con batería de 18,72 Wh, carga por USB-C</dd></div>
+              <div><dt>Autonomía</dt><dd>4–6 h calculadas para la versión con batería, pendiente de ensayo</dd></div>
+              <div><dt>Audio</dt><dd>2 micrófonos · parlante de 5 W en 360°</dd></div>
+              <div><dt>Privacidad</dt><dd>Corte físico de micrófonos desde la tapa</dd></div>
               <div><dt>Conectividad</dt><dd>Wi-Fi</dd></div>
-              <div><dt>Alimentación</dt><dd>USB-C · 5 V / 1,5 A</dd></div>
             </dl>
           </div>
           <div>
             <h3>DOMI CORE</h3>
             <dl>
               <div><dt>Tamaño</dt><dd>115 × 105 × 60 mm</dd></div>
-              <div><dt>Colores</dt><dd>Grafito, blanco, gris claro y beige. Cuerpo y tapa combinables.</dd></div>
-              <div><dt>Procesador</dt><dd>8 núcleos con aceleradora de IA dedicada</dd></div>
-              <div><dt>Memoria y almacenamiento</dt><dd>8 GB · 32 GB</dd></div>
-              <div><dt>Inteligencia</dt><dd>Reconocimiento de voz, comprensión y respuesta con voz natural, en el propio equipo</dd></div>
-              <div><dt>Idioma</dt><dd>Español (Argentina)</dd></div>
-              <div><dt>Nube</dt><dd>No la necesita: tu voz no sale de tu casa. Sin abonos.</dd></div>
+              <div><dt>Procesador</dt><dd>AMD Ryzen 5 PRO 8640U · 6 núcleos, 12 hilos · NPU de 16 TOPS · 15 W</dd></div>
+              <div><dt>Memoria y almacenamiento</dt><dd>8 GB LPDDR5x · eMMC de 32 GB</dd></div>
+              <div><dt>Procesamiento</dt><dd>Voz y respuestas en la red local</dd></div>
               <div><dt>Conectividad</dt><dd>Wi-Fi 6</dd></div>
-              <div><dt>Frente</dt><dd>Barra de luz de estado y botón de encendido</dd></div>
-              <div><dt>Ventilación</dt><dd>Base flotante con filtro antipolvo · el aire entra adelante y sale atrás</dd></div>
-              <div><dt>Alimentación</dt><dd>USB-C · fuente de 15 W</dd></div>
+              <div><dt>Alimentación</dt><dd>USB-C PD a 20 V · fuente de 45 W</dd></div>
             </dl>
           </div>
         </div>
-        <p class="nota">Requisitos: red Wi-Fi en el hogar. Un DOMI CORE por casa y un DOMI NODO por ambiente.</p>
       </div>
     </section>
+    <div class="plano presentacion-ae4" data-escena id="presentacion-ae4">
+      <div class="contenedor">
+      <section class="ae4-comparacion" id="comparacion" aria-labelledby="titulo-comparacion">
+        <p class="ceja">Comparación de producto</p>
+        <h2 id="titulo-comparacion">Qué aporta DOMI a la oficina</h2>
+        <div class="comparacion-referentes">
+          <span>Referentes del relevamiento</span>
+          <a href="https://digprjsurvey.amazon.com/csad/help/node/201602230" target="_blank" rel="noopener">Amazon Alexa ↗</a>
+          <a href="https://support.google.com/googlehome/answer/9415830" target="_blank" rel="noopener">Google Home ↗</a>
+        </div>
+        <ul class="comparacion-ventajas" aria-label="Diferenciales del prototipo DOMI">
+          <li><strong>Voz en la red local</strong><span>El diseño concentra el procesamiento en un CORE dentro de la sede. La demo de voz procesa en el equipo.</span></li>
+          <li><strong>Una orden, una sala</strong><span>El NODO identifica el ambiente que recibió el pedido para actuar sobre sus luces o su pantalla.</span></li>
+          <li><strong>Privacidad a la vista</strong><span>El diseño prevé un corte físico del micrófono en la tapa. El panel de la demo muestra su estado por sala.</span></li>
+          <li><strong>NODO con batería</strong><span>El módulo inferior está pensado para mover el NODO entre salas mientras el CORE permanece instalado.</span></li>
+          <li><strong>Un panel para la sede</strong><span>Reúne el alta de NODO, los estados de los ambientes y la gestión de rutinas.</span></li>
+        </ul>
+      </section>
+      <section class="ae4-escenas" id="uso" aria-labelledby="titulo-uso">
+        <p class="ceja">Renders de uso</p>
+        <h2 id="titulo-uso">DOMI en la oficina</h2>
+        <p class="escenas-intro">Perspectivas interiores ilustrativas basadas en las salas y el mobiliario del piso 12.</p>
+        <div class="galeria-escenas">
+          <figure class="escena-uso">
+            <a href="./recursos/uso-empresarial/directorio.webp" target="_blank" rel="noopener" aria-label="Ampliar render del Directorio">
+              <img src="./recursos/uso-empresarial/directorio.webp" width="1672" height="941" alt="Un hombre de traje le habla al DOMI NODO sobre la mesa de nogal del Directorio" loading="lazy">
+            </a>
+            <figcaption><strong>Directorio</strong><span>Una orden de voz para preparar la reunión.</span></figcaption>
+          </figure>
+          <figure class="escena-uso">
+            <a href="./recursos/uso-empresarial/finanzas.webp" target="_blank" rel="noopener" aria-label="Ampliar render de Finanzas">
+              <img src="./recursos/uso-empresarial/finanzas.webp" width="1672" height="941" alt="Una profesional revisa documentos junto al DOMI NODO en la mesa blanca de Finanzas" loading="lazy">
+            </a>
+            <figcaption><strong>Finanzas</strong><span>El NODO con batería sobre la mesa de trabajo.</span></figcaption>
+          </figure>
+          <figure class="escena-uso">
+            <a href="./recursos/uso-empresarial/operaciones.webp" target="_blank" rel="noopener" aria-label="Ampliar render de Operaciones">
+              <img src="./recursos/uso-empresarial/operaciones.webp" width="1672" height="941" alt="Una mano toca la parte superior del NODO en la sala de Operaciones" loading="lazy">
+            </a>
+            <figcaption><strong>Operaciones</strong><span>El gesto de privacidad en la tapa del NODO.</span></figcaption>
+          </figure>
+          <figure class="escena-uso">
+            <a href="./recursos/uso-empresarial/core-recinto-tecnico.webp" target="_blank" rel="noopener" aria-label="Ampliar render del CORE en el recinto técnico">
+              <img src="./recursos/uso-empresarial/core-recinto-tecnico.webp" width="1672" height="941" alt="DOMI CORE grafito conectado a la alimentación sobre una bandeja ventilada del rack" loading="lazy">
+            </a>
+            <figcaption><strong>Recinto técnico</strong><span>El DOMI CORE instalado en el rack de la oficina.</span></figcaption>
+          </figure>
+        </div>
+      </section>
+      <section class="panel-vista" id="panel" aria-labelledby="titulo-panel">
+        <div class="panel-intro">
+          <p class="ceja">Demo de la aplicación</p>
+          <h2 id="titulo-panel">Panel de control DOMI</h2>
+          <p>Probá cómo se agrega un NODO, se revisa el estado de cada micrófono y se administran las luces y rutinas por sala.</p>
+          <a class="abrir-panel boton primario" href="panel/index.html" target="_blank" rel="noopener">Abrir panel completo <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="panel-capturas">
+          <figure>
+            <img src="./recursos/panel/02-ambientes.png" width="1920" height="1080" loading="lazy" alt="El panel DOMI muestra los cuatro ambientes y el estado de cada NODO.">
+            <figcaption>Ambientes</figcaption>
+          </figure>
+          <figure>
+            <img src="./recursos/panel/04-privacidad.png" width="1920" height="1080" loading="lazy" alt="La sección Privacidad del panel DOMI muestra el estado de los micrófonos por ambiente.">
+            <figcaption>Privacidad</figcaption>
+          </figure>
+        </div>
+        <div class="panel-proceso">
+          <h3>Del prototipo en Figma al panel web</h3>
+          <p>Primero maquetamos el panel en Figma para el caso «Casa de Laura» del AE3. Ahí definimos la navegación, las tarjetas de ambientes y los estados de los dispositivos. Después desarrollamos el panel interactivo en HTML y JavaScript y lo adaptamos a la oficina del AE4.</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px"><a class="boton chico abrir-panel" href="https://www.figma.com/design/EuMJ4JA2bMz4tbnYyINPmx/DOMI-%C2%B7-Panel-de-control-%E2%80%94-Prototipo-AE3?node-id=0-1&amp;p=f" target="_blank" rel="noopener">Abrir prototipo en Figma ↗</a></div>
+          <div class="panel-capturas">
+            <figure>
+              <img src="./recursos/figma/ambientes.webp" width="1687" height="1200" loading="lazy" alt="Diseño original de Ambientes en el prototipo Casa de Laura de Figma.">
+              <figcaption>Figma · Vista de ambientes</figcaption>
+            </figure>
+            <figure>
+              <img src="./recursos/figma/detalle-living.webp" width="1687" height="1200" loading="lazy" alt="Diseño original de la vista de detalle del living con controles del NODO.">
+              <figcaption>Figma · Detalle del living</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+      <section class="laminas" id="laminas" aria-labelledby="titulo-laminas">
+        <p class="ceja">Documentación técnica</p>
+        <h2 id="titulo-laminas">Láminas A3</h2>
+        <p class="laminas-intro">Nueve láminas A3 dibujadas en FreeCAD TechDraw a partir de los modelos CAD finales, con el rótulo de la cátedra. Las vistas y las cotas están vinculadas a la geometría: si cambia una pieza, cambia la lámina.</p>
+        <ul class="laminas-criterios">
+          <li><strong>Método ISO E</strong><span>Primer diedro, IRAM 4501: la planta va debajo del frente y toda vista fuera de su lugar se indica con flecha y letra.</span></li>
+          <li><strong>Cotas en paralelo</strong><span>IRAM 4513: medidas tomadas desde un mismo plano de referencia, sin cadenas cerradas ni cotas repetidas.</span></li>
+          <li><strong>Corte y detalle</strong><span>IRAM 4509: corte A-A con rayado a 45°. La rejilla perforada va simplificada y con detalle a 5:1.</span></li>
+          <li><strong>Líneas y escalas</strong><span>IRAM 4502 y 4505: ejes de trazo y punto fino; escalas 1:1, 1:2 y 5:1.</span></li>
+        </ul>
+        <div class="laminas-correcciones">
+          <h3>Qué corregimos después del AE3</h3>
+          <p><strong>CORE · ubicación de las vistas.</strong> La vista posterior estaba a la izquierda del frente, el lugar de la lateral derecha, y no respondía al sistema multivistas. Ahora el frente es la vista principal, la planta está debajo y la cara posterior es la vista F, referenciada con flecha.</p>
+          <p><strong>NODO · sistema de cotas.</strong> La altura tenía una cadena de cotas parciales más la total, con información repetida. Ahora las alturas se acotan en paralelo desde el plano de apoyo y los diámetros, como el Ø84 de la tapa, se concentran en la planta.</p>
+        </div>
+        <p class="laminas-ayuda">Elegí una lámina para ver su PDF en esta página.</p>
+        <div class="galeria-laminas">
+          <a class="lamina" href="laminas/UCP_SR_2026_A_AE4_Coronil_Villalba_L1_01_NODO_Multivistas.pdf" aria-haspopup="dialog">
+            <img src="./recursos/laminas/lamina-01.webp" width="1191" height="842" alt="Vistas del NODO con batería: frente con cotas de altura, planta con diámetros, corte A-A y detalle de la rejilla" loading="lazy">
+            <span class="lamina-titulo"><strong>01 · NODO · Vistas múltiples</strong><span>Frente, planta, corte A-A, vista parcial F y detalle Y · 1:1 y 5:1</span></span>
+            <span class="lamina-lectura">El corte A-A, en el lugar de la vista lateral izquierda, muestra el pack de dos celdas dentro del anillo. Las alturas se acotan en paralelo desde el plano de apoyo y los diámetros, en la planta.</span>
+          </a>
+          <a class="lamina" href="laminas/UCP_SR_2026_A_AE4_Coronil_Villalba_L1_02_CORE_Multivistas.pdf" aria-haspopup="dialog">
+            <img src="./recursos/laminas/lamina-02.webp" width="1191" height="842" alt="Vistas del CORE: frente con la barra de luz y la tecla, planta con el símbolo y vista F de la cara posterior" loading="lazy">
+            <span class="lamina-titulo"><strong>02 · CORE · Vistas múltiples</strong><span>Frente, planta y vista F · 1:1</span></span>
+            <span class="lamina-lectura">La planta va debajo del frente, como corresponde al método ISO E. La cara posterior con la entrada USB-C se dibuja como vista F, indicada con flecha y letra sobre la planta.</span>
+          </a>
+          <a class="lamina" href="laminas/UCP_SR_2026_A_AE4_Coronil_Villalba_L2_03_NODO_Isometrica.pdf" aria-haspopup="dialog">
+            <img src="./recursos/laminas/lamina-03.webp" width="1191" height="842" alt="Isométricas acotadas del NODO armado, vistas desde adelante y desde atrás" loading="lazy">
+            <span class="lamina-titulo"><strong>03 · NODO · Isométricas</strong><span>Frontal superior y posterior superior · 1:1</span></span>
+            <span class="lamina-lectura">Proyección isométrica con ejes a 120°. Las cotas siguen los ejes isométricos e indican la medida real del NODO: Ø96, 138,6 y el módulo de batería de 28,6.</span>
+          </a>
+          <a class="lamina" href="laminas/UCP_SR_2026_A_AE4_Coronil_Villalba_L2_04_CORE_Isometrica.pdf" aria-haspopup="dialog">
+            <img src="./recursos/laminas/lamina-04.webp" width="1191" height="842" alt="Isométricas acotadas del CORE armado, vistas desde adelante y desde atrás" loading="lazy">
+            <span class="lamina-titulo"><strong>04 · CORE · Isométricas</strong><span>Frontal superior y posterior superior · 1:1</span></span>
+            <span class="lamina-lectura">Las medidas generales 115 × 105 × 60 se acotan sobre las caras del CORE. La vista posterior muestra la entrada USB-C, acotada en la lámina 02.</span>
+          </a>
+          <a class="lamina" href="laminas/UCP_SR_2026_A_AE4_Coronil_Villalba_L2_05_NODO_Explotada.pdf" aria-haspopup="dialog">
+            <img src="./recursos/laminas/lamina-05.webp" width="1191" height="842" alt="Despiece del NODO con batería con globos numerados y lista de piezas" loading="lazy">
+            <span class="lamina-titulo"><strong>05 · NODO · Isométrica explotada</strong><span>16 posiciones y lista de piezas · 1:2</span></span>
+            <span class="lamina-lectura">Las piezas se separan sobre el eje de armado, de la base de silicona a la tapa táctil. Cada globo remite a la lista con cantidad, material y masa estimada.</span>
+          </a>
+          <a class="lamina" href="laminas/UCP_SR_2026_A_AE4_Coronil_Villalba_L2_06_CORE_Explotada.pdf" aria-haspopup="dialog">
+            <img src="./recursos/laminas/lamina-06.webp" width="1191" height="842" alt="Despiece del CORE con la placa, los disipadores, el ventilador y la base" loading="lazy">
+            <span class="lamina-titulo"><strong>06 · CORE · Isométrica explotada</strong><span>13 posiciones y lista de piezas · 1:2</span></span>
+            <span class="lamina-lectura">Se ve el interior: la placa con el Ryzen 5 PRO, los disipadores con sus tornillos con resorte, el ventilador, el panel frontal, la entrada USB-C y el cierre inferior.</span>
+          </a>
+          <a class="lamina" href="laminas/UCP_SR_2026_A_AE4_Coronil_Villalba_L3_07_NODO_Situacion_de_uso.pdf" aria-haspopup="dialog">
+            <img src="./recursos/laminas/lamina-07.webp" width="1191" height="842" alt="Renders del NODO sobre la mesa de la sala de directorio, de finanzas y de operaciones" loading="lazy">
+            <span class="lamina-titulo"><strong>07 · NODO en uso</strong><span>Perspectiva lineal de dos puntos</span></span>
+            <span class="lamina-lectura">Renders en la sala de directorio, en finanzas y en operaciones. Las aristas de la mesa y del ventanal fugan hacia dos puntos sobre la línea de horizonte.</span>
+          </a>
+          <a class="lamina" href="laminas/UCP_SR_2026_A_AE4_Coronil_Villalba_L3_08_CORE_Recinto_Tecnico.pdf" aria-haspopup="dialog">
+            <img src="./recursos/laminas/lamina-08.webp" width="1191" height="842" alt="Render del CORE instalado en el recinto técnico y vista del equipo" loading="lazy">
+            <span class="lamina-titulo"><strong>08 · CORE instalado</strong><span>Perspectiva lineal de dos puntos</span></span>
+            <span class="lamina-lectura">El CORE en el recinto técnico de la oficina. Visto en ángulo, se leen a la vez el frente, la cara superior con el símbolo y la base ventilada.</span>
+          </a>
+          <a class="lamina" href="laminas/UCP_SR_2026_A_AE4_Coronil_Villalba_L3_09_DOMI_Distribucion_Oficina.pdf" aria-haspopup="dialog">
+            <img src="./recursos/laminas/lamina-09.webp" width="1191" height="842" alt="Vista desde arriba del piso de oficinas con el CORE y un NODO por sala" loading="lazy">
+            <span class="lamina-titulo"><strong>09 · DOMI en la oficina</strong><span>Perspectiva lineal de tres puntos</span></span>
+            <span class="lamina-lectura">Vista desde arriba del piso: además de los dos puntos de fuga horizontales, las verticales convergen en un tercero. Muestra un CORE central y un NODO por sala.</span>
+          </a>
+        </div>
+        <dialog class="visor-lamina" id="visor-lamina" aria-labelledby="titulo-visor-lamina">
+          <div class="visor-lamina-cabecera">
+            <h3 id="titulo-visor-lamina">Lámina A3</h3>
+            <a class="boton chico" id="descargar-lamina" download>Descargar PDF</a>
+            <form method="dialog">
+              <button class="cerrar-lamina" type="submit" aria-label="Cerrar lámina" autofocus>×</button>
+            </form>
+          </div>
+          <iframe id="pdf-lamina" title="Lámina A3"></iframe>
+        </dialog>
+      </section>
+      </div>
+    </div>
   </main>
 
   <footer class="pie">
     <div class="contenedor">
-      <img src="/brand/DOMI_logo_blanco.svg" alt="DOMI" class="pie-logo" width="88" height="104">
-      <p class="pie-frase">La inteligencia se queda en casa.</p>
-      <ol class="pie-notas">
-        <li id="nota-1">Tiempo estimado para pedidos del hogar, desde que terminás de hablar hasta que DOMI empieza a responder. Puede variar según el pedido.</li>
-        <li id="nota-2">Comparado con un parlante inteligente Echo Dot de US$ 79,99 en cada uno de los cuatro ambientes (precio de agosto de 2026).</li>
-        <li id="nota-3">Precios sugeridos de lanzamiento. Pueden cambiar. Las imágenes del producto son representaciones del diseño.</li>
-      </ol>
+      <img src="/brand/DOMI_logo_blanco.svg" alt="DOMI" class="pie-logo" width="1099" height="288">
+      <p class="pie-frase">La inteligencia se queda en tu oficina.</p>
       <p class="pie-creditos">Diseño de producto: Fabricio Iván Coronil (DOMI NODO) y Alejandro Matías Villalba (DOMI CORE).<br>© 2026 DOMI. Diseñado en Argentina.</p>
     </div>
   </footer>

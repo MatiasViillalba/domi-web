@@ -73,6 +73,18 @@ export const NODO = {
       piezas: ['BandaInferior', 'SimboloFrontal'],
     },
     {
+      id: 'bateria', nombre: 'Módulo de batería', destacado: true,
+      texto: 'El anillo inferior suma 28,6 mm. Aloja el pack propuesto de dos celdas y el módulo de carga en evaluación.',
+      piezas: ['ModuloBateria', 'SoporteBateria', 'CeldasBateria', 'ModuloCarga'],
+      tracks: {
+        ModuloBateria: [seg(0.55, 0.87, 0, -14, -66)],
+        SoporteBateria: [seg(0.55, 0.87, 0, -15, 0)],
+        CeldasBateria: [seg(0.55, 0.87, 0, -3, 0)],
+        ModuloCarga: [seg(0.55, 0.87, 0, -3, 15)],
+      },
+      etiqueta: { pieza: 'CeldasBateria', titulo: 'Pack de batería', sub: '18,72 Wh nominales', ancla: [8, 7, 11] },
+    },
+    {
       id: 'cierre', nombre: 'Cierre inferior',
       piezas: ['TapaInferior', 'Tornillos'],
       tracks: { TapaInferior: [seg(0.55, 0.92, 0, -18, 0)], Tornillos: [seg(0.55, 0.92, 0, -30, 0)] },
@@ -108,12 +120,13 @@ export const CORE = {
     },
     {
       id: 'placa', nombre: 'Procesamiento local', destacado: true,
-      texto: 'Un procesador de 8 núcleos con aceleradora de IA y 8 GB de memoria: convierte tu voz en texto, entiende lo que pedís y arma la respuesta, todo dentro de tu casa.',
+      texto: 'AMD Ryzen 5 PRO 8640U con 6 núcleos y 12 hilos. Junto a la memoria prevista de 8 GB, procesa voz y respuestas dentro de la red de la empresa.',
       piezas: ['Placa_PCB', 'Placa_pads_montaje', 'Placa_SoC_sustrato', 'Placa_SoC_IHS', 'Placa_RAM', 'Placa_chips', 'Placa_inductores', 'Placa_cristales',
         'Placa_WiFi_blindaje', 'Placa_antena', 'Placa_LED_PWR', 'Placa_LED_ACT', 'Placa_GPIO_base', 'Placa_GPIO_pines', 'Placa_USB_C', 'Placa_lenguas',
-        'Placa_SMD_capacitores', 'Placa_SMD_resistencias', 'Conectores_Dupont', 'eMMC_modulo', 'eMMC_chip', 'eMMC_conector'],
+        'Placa_SMD_capacitores', 'Placa_SMD_resistencias', 'Conectores_Dupont', 'eMMC_modulo', 'eMMC_chip', 'eMMC_conector',
+        'SoC_capacitores', 'VRM_inductores'],
       track: [seg(0.46, 0.7, 0, 38, 0)],
-      etiqueta: { pieza: 'Placa_PCB', titulo: 'Procesamiento local', sub: 'Toda la inteligencia, en casa', ancla: [-30, 0, 20] },
+      etiqueta: { pieza: 'Placa_SoC_IHS', titulo: 'Procesamiento local', sub: 'Ryzen 5 PRO 8640U', ancla: [0, 0.15, 0] },
     },
     {
       id: 'tornillos_placa', nombre: 'Fijaciones',
@@ -122,8 +135,9 @@ export const CORE = {
     {
       id: 'refrigeracion', nombre: 'Disipadores', destacado: true,
       texto: 'Aletas de aluminio alineadas con el paso del aire para que DOMI trabaje fresco.',
-      piezas: ['Pads_termicos', 'Disipador_principal', 'Disipadores_aux'],
-      tracks: { Pads_termicos: [seg(0.46, 0.7, 0, 48, 0)], Disipador_principal: [seg(0.46, 0.7, 0, 60, 0)], Disipadores_aux: [seg(0.46, 0.7, 0, 60, 0)] },
+      piezas: ['Pads_termicos', 'Disipador_principal', 'Disipadores_aux', 'Tuercas_disipador', 'Tornillos_disipador', 'Resortes_disipador'],
+      track: [seg(0.46, 0.7, 0, 60, 0)],
+      tracks: { Pads_termicos: [seg(0.46, 0.7, 0, 48, 0)] },
       etiqueta: { pieza: 'Disipador_principal', titulo: 'Disipadores', sub: 'Aletas de aluminio', ancla: [0, 4, 0] },
     },
     {
@@ -144,7 +158,7 @@ export const CORE = {
     },
     {
       id: 'entrada', nombre: 'Entrada USB-C', destacado: true,
-      texto: 'La única conexión del CORE. La red es por Wi-Fi: no necesita ningún otro cable.',
+      texto: 'Entrada de alimentación USB-C Power Delivery de 20 V y 3 A prevista en el CAD del AE4. La comunicación va por Wi-Fi.',
       piezas: ['PCB_entrada', 'USB_C_receptaculo', 'USB_C_receptaculo_lengua', 'PCB_entrada_pads', 'PCB_entrada_SMD', 'Tornillos_PCB_entrada'],
       track: [seg(0.12, 0.2, 0, 3, 0), seg(0.16, 0.24, 0, 0, 4), seg(0.62, 0.84, 0, 0, -46)],
       etiqueta: { pieza: 'PCB_entrada', titulo: 'USB-C', sub: 'Un solo cable' },

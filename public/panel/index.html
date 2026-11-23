@@ -1,0 +1,1322 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Sistema de conexión de DOMI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: barra lateral fija de 248 px + lienzo de trabajo; en teléfono, barra superior y barra inferior.
+   Identidad de la web domi-web: grafito, una sola luz de color (la del NODO) y datos en monoespaciada. */
+:root {
+  color-scheme: dark;
+  --bg: #08090b; --side: #0c0d10; --s1: #111215; --s2: #16171b; --s3: #1d1e23; --grafito: #1d1e22; --inv: #f2f3f5;
+  --l1: rgba(255,255,255,.07); --l2: rgba(255,255,255,.11); --l3: rgba(255,255,255,.2);
+  --fg: #f2f3f5; --fg2: #9a9ea7; --fg3: #80848e; --ink: #08090b;
+  --ok: #34e07a; --think: #3d7bff; --resp: #5a6bff; --voz: #2fd3ff; --mute: #ff453a; --idle: #c9cdd6; --warn: #f5b83d; --err: #ff6b5e;
+  --t-ok: rgba(52,224,122,.12); --t-ok2: rgba(52,224,122,.5); --t-mute: rgba(255,69,58,.13); --t-mute2: rgba(255,69,58,.45);
+  --t-warn: rgba(245,184,61,.12); --t-warn2: rgba(245,184,61,.45); --t-err: rgba(255,107,94,.12); --t-err2: rgba(255,107,94,.45);
+  --t-think: rgba(61,123,255,.14); --t-resp: rgba(90,107,255,.16); --t-voz: rgba(47,211,255,.12); --t-idle: rgba(201,205,214,.1);
+  --f-ui: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --f-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --side-w: 248px; --tab-h: 64px;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(--f-ui); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--ok); outline-offset: 2px; }
+.ic { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ic.s16 { width: 16px; height: 16px; } .ic.s14 { width: 14px; height: 14px; } .ic.s24 { width: 24px; height: 24px; }
+.mono { font-family: var(--f-data); font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+h1, h2, h3 { margin: 0; text-wrap: balance; font-weight: 600; }
+h1 { font-size: 32px; line-height: 38px; letter-spacing: -.02em; }
+h1.big { font-size: 44px; line-height: 48px; letter-spacing: -.025em; }
+h2 { font-size: 22px; line-height: 28px; letter-spacing: -.012em; }
+h3 { font-size: 17px; line-height: 24px; letter-spacing: -.006em; }
+p { margin: 0; }
+.lead { color: var(--fg2); font-size: 16px; line-height: 24px; max-width: 64ch; }
+.muted { color: var(--fg2); } .faint { color: var(--fg3); }
+.small { font-size: 13px; line-height: 18px; } .cap { font-size: 12px; line-height: 16px; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font: 500 11px/14px var(--f-data); letter-spacing: .14em; text-transform: uppercase; color: var(--fg2); margin: 0; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c, var(--ok)); box-shadow: 0 0 10px var(--c, var(--ok)); flex: none; }
+
+/* ---------- estructura */
+.app { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); min-height: 100vh; }
+.side { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 0; padding: 24px 16px 18px; background: var(--side); border-right: 1px solid var(--l1); overflow-y: auto; }
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; padding: 4px 8px; border-radius: 8px; width: max-content; }
+.brand svg { width: 22px; height: 22px; } .brand b { font-weight: 600; letter-spacing: .32em; font-size: 14px; }
+.home-card { display: flex; align-items: center; gap: 12px; margin-top: 24px; padding: 10px 12px 10px 10px; border-radius: 12px; background: var(--s1); border: 1px solid var(--l1); }
+.home-card .home-ic { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: var(--t-ok); color: var(--ok); }
+.home-card b, .user b { display: block; font-weight: 500; } .home-card small, .user small { display: block; color: var(--fg3); font-size: 12px; }
+.side-eb { margin: 24px 12px 8px; color: var(--fg3); }
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav-i { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; border-radius: 10px; text-decoration: none; color: var(--fg2); font-weight: 500; border: 1px solid transparent; transition: background .15s, color .15s; }
+.nav-i .ic { color: var(--fg3); transition: color .15s; }
+.nav-i:hover { background: var(--l1); color: var(--fg); } .nav-i:hover .ic { color: var(--fg); }
+.nav-i.on { background: var(--s2); border-color: var(--l1); color: var(--fg); } .nav-i.on .ic { color: var(--fg); }
+.nav-i span { flex: 1; } .nav-i .cnt { flex: none; font: 12px var(--f-data); color: var(--fg3); }
+.nav-i.on::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+.side-fill { flex: 1; min-height: 16px; }
+.core-mini { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 14px; background: var(--s1); border: 1px solid var(--l1); text-decoration: none; transition: border-color .15s; }
+.core-mini:hover { border-color: var(--l3); }
+.core-mini .row { display: flex; align-items: center; gap: 8px; } .core-mini .row b { font-weight: 500; flex: 1; }
+.bar { height: 4px; border-radius: 2px; background: var(--l2); overflow: hidden; } .bar i { display: block; height: 100%; background: var(--ok); border-radius: 2px; }
+.user { display: flex; align-items: center; gap: 12px; padding: 12px 8px 0; }
+.avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--s3); font-weight: 500; flex: none; }
+
+.main { min-width: 0; padding-block: 40px 72px; padding-left: max(48px, env(safe-area-inset-left, 0px)); padding-right: max(48px, env(safe-area-inset-right, 0px)); position: relative; outline: none; }
+.main::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 420px; background: radial-gradient(60% 70% at 70% 0%, rgba(52,224,122,.07), transparent 70%); pointer-events: none; }
+.page { position: relative; display: flex; flex-direction: column; gap: 32px; max-width: 1096px; margin: 0 auto; }
+.topbar, .tabbar { display: none; }
+
+/* ---------- piezas comunes */
+.phead { display: flex; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
+.phead-t { flex: 1 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.phead-a { display: flex; gap: 12px; flex-wrap: wrap; }
+.card { background: var(--s1); border: 1px solid var(--l1); border-radius: 16px; box-shadow: inset 0 1px 0 rgba(255,255,255,.045); padding: 24px; min-width: 0; }
+.card.tight { padding: 20px; }
+.card-h { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.card-h .grow { flex: 1; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: 999px; border: 1px solid transparent; font-weight: 600; font-size: 14px; white-space: nowrap; transition: background .15s, border-color .15s, color .15s, box-shadow .15s; text-decoration: none; }
+.btn .ic { width: 18px; height: 18px; }
+.btn.primary { background: var(--inv); color: var(--ink); } .btn.primary:hover { background: #fff; box-shadow: 0 0 18px rgba(255,255,255,.16); }
+.btn.secondary { border-color: var(--l3); background: transparent; } .btn.secondary:hover { background: var(--s3); }
+.btn.ghost { background: transparent; color: var(--fg2); padding: 0 12px; } .btn.ghost:hover { background: var(--l1); color: var(--fg); }
+.btn.danger { border-color: var(--t-err2); color: var(--err); background: transparent; } .btn.danger:hover { background: var(--t-err); border-color: var(--err); }
+.btn.sm { height: 32px; padding: 0 12px; font-size: 13px; }
+.btn:disabled { background: var(--s3); color: var(--fg3); border-color: transparent; cursor: default; box-shadow: none; }
+.btn.wide { width: 100%; }
+.icon-btn { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--l2); background: transparent; color: var(--fg2); flex: none; }
+.icon-btn:hover { background: var(--s3); color: var(--fg); }
+.badge { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px 0 8px; border-radius: 999px; font-size: 12px; font-weight: 500; white-space: nowrap; background: var(--bt, var(--l1)); color: var(--bc, var(--fg2)); }
+.badge i { width: 6px; height: 6px; border-radius: 50%; background: var(--bc, var(--fg2)); box-shadow: 0 0 8px var(--bc, transparent); }
+.b-ok { --bt: var(--t-ok); --bc: var(--ok); } .b-think { --bt: var(--t-think); --bc: var(--think); } .b-resp { --bt: var(--t-resp); --bc: var(--resp); }
+.b-voz { --bt: var(--t-voz); --bc: var(--voz); } .b-mute { --bt: var(--t-mute); --bc: var(--mute); } .b-warn { --bt: var(--t-warn); --bc: var(--warn); }
+.b-idle { --bt: var(--t-idle); --bc: var(--fg2); } .b-err { --bt: var(--t-err); --bc: var(--err); } .b-neutral { --bt: var(--l1); --bc: var(--fg2); }
+.b-neutral i { box-shadow: none; }
+.switch { position: relative; width: 40px; height: 24px; border-radius: 999px; border: 1px solid var(--l2); background: var(--s3); flex: none; padding: 0; transition: background .18s, border-color .18s; }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--fg2); transition: transform .18s ease, background .18s; }
+.switch[aria-checked="true"] { background: var(--ok); border-color: var(--ok); } .switch[aria-checked="true"]::after { transform: translateX(16px); background: var(--ink); }
+.switch:disabled { opacity: .45; cursor: default; }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--l2); background: transparent; color: var(--fg2); font-weight: 500; }
+.chip:hover { border-color: var(--l3); color: var(--fg); }
+.chip[aria-pressed="true"] { background: var(--t-ok); border-color: var(--t-ok2); color: var(--fg); }
+.chip:disabled { opacity: .45; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px; background: var(--s2); border: 1px solid var(--l1); }
+.seg button { border: 0; background: transparent; color: var(--fg2); height: 30px; padding: 0 14px; border-radius: 999px; font-weight: 500; font-size: 13px; }
+.seg button[aria-pressed="true"] { background: var(--inv); color: var(--ink); }
+.field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.field label, .flabel { font-size: 13px; line-height: 18px; font-weight: 500; color: var(--fg2); }
+.input { width: 100%; height: 44px; padding: 0 14px; border-radius: 12px; background: var(--s2); border: 1px solid var(--l2); color: var(--fg); transition: border-color .15s, box-shadow .15s; }
+textarea.input { height: 120px; padding: 12px 14px; resize: vertical; line-height: 20px; }
+.input::placeholder { color: var(--fg3); }
+.input:hover { border-color: var(--l3); }
+.input:focus { outline: none; border-color: var(--ok); box-shadow: 0 0 0 4px rgba(52,224,122,.18); }
+.input.bad { border-color: var(--err); } .input.bad:focus { box-shadow: 0 0 0 4px rgba(255,107,94,.18); }
+.help { font-size: 12px; line-height: 16px; color: var(--fg3); display: flex; gap: 6px; align-items: flex-start; }
+.help.bad { color: var(--err); }
+input[type="range"] { width: 100%; accent-color: var(--inv); height: 20px; }
+.kv { display: flex; align-items: center; gap: 10px; padding: 9px 0; }
+.kv .k { flex: 1; color: var(--fg2); font-size: 13px; } .kv .v { font: 13px/18px var(--f-data); text-align: right; }
+.kv .ic { color: var(--fg3); }
+.divider { height: 1px; background: var(--l1); border: 0; margin: 0; }
+.list > * + * { border-top: 1px solid var(--l1); }
+.tile { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--s2); border: 1px solid var(--l1); flex: none; }
+.empty { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding: 28px 24px; border: 1px dashed var(--l3); border-radius: 14px; }
+.spin { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--l2); border-top-color: var(--ok); animation: spin .8s linear infinite; flex: none; }
+.spin.lg { width: 36px; height: 36px; border-width: 3px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.skel { background: linear-gradient(90deg, var(--s2), var(--s3), var(--s2)); background-size: 200% 100%; animation: shimmer 1.4s ease-in-out infinite; border-radius: 8px; }
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.note { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 18px; }
+.note.info { background: var(--t-think); color: var(--fg); } .note.info .ic { color: var(--think); }
+.note.warn { background: var(--t-warn); border: 1px solid var(--t-warn2); } .note.warn .ic { color: var(--warn); }
+.note.err { background: var(--t-err); border: 1px solid var(--t-err2); color: var(--err); }
+.note.ok { background: var(--t-ok); border: 1px solid var(--t-ok2); } .note.ok .ic { color: var(--ok); }
+.stage { position: relative; display: grid; place-items: center; background: var(--bg); border: 1px solid var(--l1); border-radius: 12px; overflow: hidden; }
+.stage { height: 100px; } .stage.big { height: 176px; }
+.stage canvas { display: block; width: 100%; height: 100%; }
+
+/* ---------- Inicio */
+.row1 { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; }
+.kpis { display: flex; flex-direction: column; gap: 12px; }
+.kpi { display: flex; flex-direction: column; justify-content: space-between; gap: 10px; flex: 1; }
+.kpi .lbl { display: flex; align-items: center; gap: 8px; } .kpi .lbl .ic { color: var(--fg3); }
+.kpi .val { display: flex; align-items: flex-end; gap: 8px; }
+.kpi .num { font-size: 40px; line-height: 44px; font-weight: 600; letter-spacing: -.025em; }
+.kpi .val .grow { flex: 1; }
+.routes { display: flex; gap: 2px; width: 128px; height: 8px; }
+.routes i { display: block; border-radius: 3px; }
+.bullet { position: relative; width: 140px; height: 30px; }
+.bullet .tr { position: absolute; left: 0; right: 0; top: 18px; height: 4px; border-radius: 2px; background: var(--l2); }
+.bullet .bd { position: absolute; top: 18px; height: 4px; background: var(--t-ok2); }
+.bullet .mk { position: absolute; top: 13px; width: 3px; height: 14px; border-radius: 1px; background: var(--ok); transform: translateX(-1px); }
+.bullet .goal { position: absolute; top: 12px; width: 1.5px; height: 16px; background: var(--fg2); }
+.bullet .gl { position: absolute; top: -4px; font-size: 11px; color: var(--fg3); transform: translateX(-50%); white-space: nowrap; }
+.lockb { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--t-ok); color: var(--ok); }
+
+.map-card { display: flex; flex-direction: column; gap: 20px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--fg2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; } .legend i { display: inline-block; flex: none; }
+.bignum { font-size: 40px; line-height: 44px; font-weight: 600; letter-spacing: -.025em; }
+.gs { display: grid; gap: 24px; align-items: start; } .gs > * { min-width: 0; } .gs-380 { grid-template-columns: minmax(0, 1fr) minmax(0, 380px); } .gs-440 { grid-template-columns: minmax(0, 1fr) minmax(0, 440px); } .gs-460 { grid-template-columns: minmax(0, 1fr) minmax(0, 460px); } .gs.stretch { align-items: stretch; }
+.house-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 150px; align-items: stretch; flex: 1; }
+.inet { align-self: center; }
+.house { position: relative; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: minmax(144px, 1fr); gap: 8px; padding: 10px; border: 1px dashed var(--l2); border-radius: 20px; background: var(--bg); }
+.links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 1; }
+.room { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 18px; min-height: 144px; padding: 14px 16px; border-radius: 12px; background: var(--s2); border: 1px solid var(--l1); text-align: left; transition: border-color .15s, background .15s; }
+.room:hover { border-color: var(--l3); background: var(--s3); }
+.room.r-right { align-items: flex-end; text-align: right; }
+.room.r-bottom { flex-direction: column-reverse; }
+.room.span { grid-column: 1 / -1; align-items: center; text-align: center; }
+.room.st-mute { border-color: var(--t-mute2); } .room.st-off { border: 1px dashed var(--t-warn2); }
+.room .nm { font-weight: 500; font-size: 14px; } .room .sc { font-size: 12px; color: var(--fg2); }
+.room.st-mute .sc { color: var(--mute); } .room.st-off .sc { color: var(--warn); }
+.mk { position: relative; z-index: 2; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--grafito); border: 1px solid var(--l2); box-shadow: 0 10px 24px -6px rgba(0,0,0,.6); margin-inline: 34px; }
+.room.span .mk { margin-inline: 0; }
+.mk i { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--c); box-shadow: 0 0 14px var(--c); color: var(--ink); }
+.mk i .ic { width: 12px; height: 12px; stroke-width: 2; }
+.mk.k-off i { background: transparent; border: 1.5px solid var(--warn); box-shadow: none; color: var(--warn); }
+.mk.k-mute i { color: var(--fg); }
+.core-node { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+.core-box { position: relative; width: 100px; height: 56px; border-radius: 12px; background: var(--grafito); border: 1px solid var(--l3); box-shadow: 0 12px 24px -4px rgba(0,0,0,.6); }
+.core-box .sym { position: absolute; left: 43px; top: 12px; width: 14px; height: 14px; opacity: .8; }
+.core-box .lb { position: absolute; left: 30px; top: 40px; width: 22px; height: 3px; border-radius: 2px; background: var(--cc, var(--ok)); box-shadow: 0 0 12px var(--cc, var(--ok)); }
+.core-box .key { position: absolute; left: 64px; top: 38px; width: 12px; height: 7px; border-radius: 2px; border: 1px solid var(--l3); }
+.core-glow { position: absolute; width: 260px; height: 160px; border-radius: 50%; background: radial-gradient(closest-side, rgba(52,224,122,.16), transparent); left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 0; pointer-events: none; }
+.core-tag { padding: 3px 8px; border-radius: 999px; background: var(--s1); border: 1px solid var(--l2); font-size: 12px; color: var(--fg2); white-space: nowrap; order: -1; }
+.inet { display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; text-align: center; padding-left: 26px; }
+.inet::before { content: ""; position: absolute; left: 0; right: calc(50% + 26px); top: 64px; border-top: 1.5px dashed var(--fg3); opacity: .6; }
+.inet .cloud { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; border: 1px dashed var(--l3); color: var(--fg3); }
+.inet .zero { position: relative; margin-bottom: 4px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 8px; border-radius: 999px; background: var(--s1); border: 1px solid var(--t-ok2); font: 13px var(--f-data); z-index: 4; }
+.inet .zero .ic { color: var(--ok); }
+.inet .cl { margin-top: 4px; }
+.ncards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.ncard { display: flex; flex-direction: column; gap: 14px; padding: 16px; text-align: left; background: var(--s1); border: 1px solid var(--l1); border-radius: 16px; box-shadow: inset 0 1px 0 rgba(255,255,255,.045); transition: border-color .15s, background .15s; }
+.ncard:hover { border-color: var(--l3); background: var(--s2); }
+.ncard .stage { height: 92px; }
+.ncard .t { display: flex; align-items: center; gap: 8px; } .ncard .t b { flex: 1; font-size: 17px; font-weight: 600; letter-spacing: -.006em; }
+.ncard .t .ic { color: var(--fg3); }
+.ncard:hover .t .ic { color: var(--fg); }
+.ncard .s { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.sec-h { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.sec-h .grow { flex: 1; }
+.row3 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: stretch; }
+.urow { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 0; }
+.urow .tm { font-size: 24px; line-height: 28px; font-weight: 600; letter-spacing: -.015em; font-variant-numeric: tabular-nums; }
+.ev { display: grid; grid-template-columns: 44px 30px minmax(0, 1fr); gap: 14px; align-items: center; padding: 11px 0; }
+.ev .h { font: 13px var(--f-data); color: var(--fg3); }
+.ev .e { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--et); color: var(--ec); }
+.ev b { display: block; font-weight: 500; } .ev small { display: block; font-size: 12px; color: var(--fg3); }
+.sug { display: flex; align-items: center; gap: 14px; padding: 14px 14px 14px 16px; border-radius: 14px; background: var(--s2); border: 1px solid var(--l1); margin-top: auto; flex-wrap: wrap; }
+.sug > .ic { color: var(--ok); }
+
+/* ---------- Ambientes */
+.summary { display: flex; flex-wrap: wrap; padding: 18px 24px; gap: 16px 0; }
+.summary > div { display: flex; align-items: center; gap: 12px; flex: 1 1 200px; padding: 0 24px; border-left: 1px solid var(--l1); }
+.summary > div:first-child { padding-left: 0; border-left: 0; }
+.summary .n { font-size: 24px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.rcards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.rcard { display: flex; flex-direction: column; gap: 18px; padding: 20px 20px 16px; text-align: left; background: var(--s1); border: 1px solid var(--l1); border-radius: 16px; box-shadow: inset 0 1px 0 rgba(255,255,255,.045); transition: border-color .15s, background .15s; }
+.rcard:hover { border-color: var(--l3); background: var(--s2); }
+.rcard .top { display: grid; grid-template-columns: 176px minmax(0, 1fr); gap: 20px; }
+.rcard .stage { height: 118px; }
+.rcard .hd { display: flex; align-items: flex-start; gap: 8px; } .rcard .hd b { flex: 1; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -.012em; }
+.rcard .ln { display: flex; gap: 8px; align-items: center; color: var(--fg2); font-size: 13px; margin-top: 6px; } .rcard .ln .ic { color: var(--fg3); }
+.rcard .ft { display: flex; gap: 8px; align-items: center; padding-top: 14px; border-top: 1px solid var(--l1); font-size: 12px; color: var(--fg3); }
+.rcard .ft span:first-child { flex: 1; } .rcard .ft .go { color: var(--fg2); font-size: 13px; }
+.rcard:hover .ft .go { color: var(--fg); }
+.addcard { display: flex; align-items: center; gap: 20px; padding: 22px 24px; border-radius: 16px; border: 1px dashed var(--l3); flex-wrap: wrap; }
+
+/* ---------- capas: panel, modal, confirmación */
+.layer { position: fixed; inset: 0; z-index: 70; display: flex; }
+.scrim { position: absolute; inset: 0; background: rgba(5,6,7,.62); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: fade .2s ease; }
+@keyframes fade { from { opacity: 0; } }
+.drawer { position: relative; margin-left: auto; width: min(480px, 100%); height: 100%; display: flex; flex-direction: column; background: var(--s1); border-left: 1px solid var(--l2); box-shadow: -24px 0 56px -8px rgba(0,0,0,.55); animation: slidein .26s cubic-bezier(.2,.7,.2,1); }
+@keyframes slidein { from { transform: translateX(32px); opacity: 0; } }
+.drawer-b { flex: 1; overflow-y: auto; padding: 28px 28px 24px; display: flex; flex-direction: column; gap: 24px; padding-right: max(28px, env(safe-area-inset-right, 0px)); }
+.drawer-f { display: flex; gap: 12px; align-items: center; padding: 16px 28px calc(20px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--l1); padding-right: max(28px, env(safe-area-inset-right, 0px)); }
+.drawer-f .grow { flex: 1; }
+.grp { display: flex; flex-direction: column; gap: 12px; }
+.grp > .eyebrow { color: var(--fg3); }
+.microw { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px 14px 14px; border-radius: 14px; background: var(--s2); border: 1px solid var(--l1); }
+.microw.cut { background: var(--t-mute); border-color: var(--t-mute2); }
+.microw .tile { background: var(--s3); } .microw.cut .tile { background: var(--mute); color: var(--fg); }
+.microw b { display: block; font-weight: 500; } .microw.cut b { color: var(--mute); }
+.simbox { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 14px; border: 1px dashed var(--l3); }
+.simbox .eyebrow { color: var(--fg3); }
+.steps { display: flex; flex-direction: column; gap: 10px; }
+.steps li { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; }
+.steps { list-style: none; margin: 0; padding: 0; }
+.steps .n { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--s1); border: 1px solid var(--t-warn2); color: var(--warn); font-size: 12px; flex: none; }
+.modal-w { position: relative; margin: auto; width: min(600px, calc(100% - 32px)); max-height: calc(100% - 48px); overflow-y: auto; background: var(--s1); border: 1px solid var(--l2); border-radius: 24px; box-shadow: 0 24px 56px -8px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06); padding: 28px 32px; display: flex; flex-direction: column; gap: 22px; animation: pop .22s cubic-bezier(.2,.7,.2,1); }
+.modal-w.narrow { width: min(440px, calc(100% - 32px)); }
+@keyframes pop { from { transform: translateY(12px) scale(.98); opacity: 0; } }
+.mhead { display: flex; align-items: flex-start; gap: 12px; } .mhead > div { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.stepbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.stepbar div { display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: var(--fg3); }
+.stepbar div::before { content: ""; height: 3px; border-radius: 2px; background: var(--l2); }
+.stepbar .done::before { background: var(--ok); } .stepbar .done { color: var(--fg2); } .stepbar .cur { color: var(--fg); }
+.mfoot { display: flex; gap: 12px; align-items: center; padding-top: 20px; border-top: 1px solid var(--l1); flex-wrap: wrap; }
+.mfoot .grow { flex: 1; }
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.opt { display: flex; align-items: center; gap: 12px; padding: 14px 16px 14px 14px; border-radius: 14px; background: var(--s2); border: 1px solid var(--l2); text-align: left; transition: border-color .15s, background .15s; }
+.opt:hover:not(:disabled) { border-color: var(--l3); background: var(--s3); }
+.opt[aria-checked="true"] { background: var(--t-ok); border: 1.5px solid var(--t-ok2); }
+.opt:disabled { opacity: .5; cursor: default; }
+.opt .txt { flex: 1; min-width: 0; } .opt b { display: block; font-weight: 500; } .opt small { display: block; font-size: 12px; color: var(--fg3); }
+.opt .radio { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--l3); flex: none; display: grid; place-items: center; }
+.opt[aria-checked="true"] .radio { background: var(--ok); border-color: var(--ok); } .opt[aria-checked="true"] .radio::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ink); }
+.opt.full { grid-column: 1 / -1; }
+.found { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 14px; background: var(--t-ok); border: 1px solid var(--t-ok2); }
+.swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+.sw { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px 0 6px; border-radius: 999px; border: 1px solid var(--l2); background: transparent; color: var(--fg2); font-weight: 500; }
+.sw i { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--l3); }
+.sw[aria-checked="true"] { border-color: var(--t-ok2); background: var(--t-ok); color: var(--fg); }
+
+/* ---------- Rutinas */
+.rrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 4px 16px 4px 4px; border-radius: 12px; transition: background .15s; }
+.rrow:hover { background: var(--l1); }
+.rrow.fresh { background: var(--t-ok); }
+.rmain { display: grid; grid-template-columns: 40px minmax(0, 1fr) 200px; gap: 16px; align-items: center; padding: 12px; border: 0; background: transparent; text-align: left; border-radius: 10px; min-width: 0; }
+.rmain .tile { width: 40px; height: 40px; border-radius: 12px; }
+.rmain b { display: block; font-weight: 500; } .rmain .d { display: block; color: var(--fg2); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rmain .tr { text-align: right; font-size: 13px; color: var(--fg2); } .rmain .tr small { display: block; font: 12px var(--f-data); color: var(--fg3); }
+.rmain.paused b, .rmain.paused .d { color: var(--fg3); }
+.ed { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+.ed-l, .ed-r { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.trig { display: flex; align-items: center; gap: 12px; } .trig > div { flex: 1; } .trig b { display: block; font-weight: 500; } .trig small { display: block; font-size: 12px; color: var(--fg3); }
+.sched { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 20px; align-items: start; }
+.days { display: flex; flex-wrap: wrap; gap: 6px; } .days .chip { padding: 0 11px; }
+.action { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; border-radius: 14px; background: var(--s2); border: 1px solid var(--l1); }
+.action.bad { border-color: var(--t-err2); }
+.action .ah { display: flex; align-items: center; gap: 12px; } .action .ah b { flex: 1; font-weight: 500; }
+.action .num { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--s3); font-size: 12px; color: var(--fg2); flex: none; }
+.action .ctl { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.stepper { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--l2); border-radius: 999px; padding: 2px; }
+.stepper button { width: 30px; height: 30px; border-radius: 50%; border: 0; background: transparent; color: var(--fg2); } .stepper button:hover { background: var(--s3); color: var(--fg); }
+.stepper span { min-width: 54px; text-align: center; }
+.menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 10px; border-radius: 14px; background: var(--bg); border: 1px solid var(--l2); }
+.menu button { display: flex; gap: 10px; align-items: center; padding: 12px; border-radius: 10px; border: 1px solid var(--l1); background: var(--s2); text-align: left; }
+.menu button:hover { border-color: var(--l3); }
+.menu small { display: block; font-size: 12px; color: var(--fg3); }
+
+/* ---------- Privacidad y Sistema */
+.pipe { border: 1px dashed var(--t-ok2); border-radius: 16px; overflow: hidden; }
+.pipe-h { display: flex; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--l1); color: var(--ok); }
+.pipe-s { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.pipe-s > div { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-left: 1px solid var(--l1); transition: background .25s; }
+.pipe-s > div:first-child { border-left: 0; }
+.pipe-s > div.now { background: var(--t-ok); }
+.pipe-s .w { display: flex; gap: 8px; align-items: center; }
+.pipe-s .tm { margin-top: auto; color: var(--ok); }
+.chain { counter-reset: c; list-style: none; padding: 16px; margin: 0; border-radius: 14px; background: var(--s2); border: 1px solid var(--l1); display: flex; flex-direction: column; gap: 10px; }
+.chain li { display: flex; gap: 10px; font-size: 13px; } .chain li::before { counter-increment: c; content: counter(c); display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--s3); font-size: 12px; color: var(--fg2); flex: none; }
+.setrow { display: flex; gap: 12px; align-items: center; padding: 14px 0; }
+.setrow > div { flex: 1; min-width: 0; } .setrow b { display: block; font-weight: 500; } .setrow small { display: block; font-size: 12px; color: var(--fg3); }
+.inline-confirm { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 12px; background: var(--s2); border: 1px solid var(--l2); margin-bottom: 8px; }
+.core-front { position: relative; height: 150px; border-radius: 16px; background: var(--bg); border: 1px solid var(--l1); overflow: hidden; }
+.core-front .glow { position: absolute; left: 50%; top: 60%; width: 300px; height: 130px; transform: translate(-50%, -50%); background: radial-gradient(closest-side, var(--cg, rgba(52,224,122,.18)), transparent); }
+.core-front .box { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 104px; border-radius: 18px; background: var(--grafito); border: 1px solid var(--l3); box-shadow: 0 14px 28px -6px rgba(0,0,0,.6); }
+.core-front .lbar { position: absolute; left: 92px; top: 69px; width: 34px; height: 3px; border-radius: 2px; background: var(--cc, var(--ok)); box-shadow: 0 0 12px var(--cc, var(--ok)); }
+.core-front .key { position: absolute; left: 139px; top: 66px; width: 24px; height: 9px; border-radius: 3px; border: 1px solid var(--l3); }
+.core-front .edge { position: absolute; left: 8px; right: 8px; top: 8px; height: 1px; background: var(--l2); }
+.membar { display: flex; gap: 2px; height: 12px; border-radius: 6px; overflow: hidden; }
+.membar i { display: block; height: 100%; }
+.legend-l { display: flex; flex-direction: column; gap: 8px; }
+.legend-l div { display: flex; align-items: center; gap: 10px; font-size: 13px; } .legend-l span:nth-child(2) { flex: 1; color: var(--fg2); } .legend-l i { width: 8px; height: 8px; border-radius: 50%; }
+.chartbox { overflow-x: auto; }
+.chartbox svg { display: block; width: 100%; min-width: 560px; height: auto; }
+.chart text { fill: var(--fg3); font: 11px var(--f-ui); }
+.chart .now-l { fill: var(--fg); }
+.timeline { display: flex; gap: 2px; height: 10px; border-radius: 5px; overflow: hidden; }
+.table { width: 100%; border-collapse: collapse; }
+.table th { text-align: left; font: 500 11px var(--f-data); letter-spacing: .14em; text-transform: uppercase; color: var(--fg3); padding: 10px 12px 10px 0; border-top: 1px solid var(--l1); }
+.table td { padding: 12px 12px 12px 0; border-top: 1px solid var(--l1); vertical-align: middle; }
+.table td b { display: block; font-weight: 500; } .table td small { display: block; font-size: 12px; color: var(--fg3); }
+.table .r { text-align: right; padding-right: 0; }
+.tablebox { overflow-x: auto; }
+.via { display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 14px; background: var(--s2); border: 1px solid var(--l1); text-align: left; width: 100%; }
+.via[aria-checked="true"] { background: var(--t-ok); border-color: var(--t-ok2); }
+.via .vh { display: flex; gap: 10px; align-items: center; } .via .vh b { flex: 1; font-weight: 500; }
+.offline-banner { display: flex; gap: 16px; align-items: flex-start; padding: 20px 24px; border-radius: 16px; background: var(--s1); border: 1px solid var(--t-warn2); box-shadow: inset 0 1px 0 rgba(255,255,255,.045); flex-wrap: wrap; }
+.offline-banner .tile { width: 48px; height: 48px; border-radius: 50%; background: var(--t-warn); color: var(--warn); border: 0; }
+.offline-banner > div { flex: 1 1 320px; display: flex; flex-direction: column; gap: 8px; }
+.dim { opacity: .38; pointer-events: none; filter: saturate(.6); }
+
+/* ---------- Ayuda */
+.faq details { border-top: 1px solid var(--l1); }
+.faq summary { display: flex; align-items: center; gap: 12px; padding: 16px 4px; cursor: pointer; font-weight: 500; list-style: none; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary .ic { margin-left: auto; color: var(--fg3); transition: transform .2s; }
+.faq details[open] summary .ic { transform: rotate(90deg); color: var(--fg); }
+.faq details p { padding: 0 4px 18px; color: var(--fg2); font-size: 13px; max-width: 62ch; }
+.sent { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding: 24px 8px; }
+.sent .ok { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--t-ok); color: var(--ok); }
+
+/* ---------- avisos y simulador */
+.toasts { position: fixed; top: calc(20px + env(safe-area-inset-top, 0px)); right: max(20px, env(safe-area-inset-right, 0px)); z-index: 80; display: flex; flex-direction: column; gap: 10px; width: min(380px, calc(100% - 32px)); pointer-events: none; }
+.toast { display: flex; gap: 12px; align-items: flex-start; padding: 14px 18px 14px 14px; border-radius: 14px; background: var(--s2); border: 1px solid var(--l2); box-shadow: 0 24px 56px -8px rgba(0,0,0,.55); animation: pop .22s ease; pointer-events: auto; }
+.toast .ti { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; flex: none; background: var(--tt); color: var(--tc); }
+.toast b { display: block; font-weight: 500; } .toast span { display: block; color: var(--fg2); font-size: 13px; }
+.sim-fab { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 60; display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 18px 0 14px; border-radius: 999px; border: 1px solid var(--l3); background: rgba(22,23,27,.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); font-weight: 600; box-shadow: 0 12px 32px -8px rgba(0,0,0,.6); }
+.sim-fab:hover { border-color: var(--fg2); }
+.sim-fab .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+.sim { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 61; width: min(380px, calc(100% - 32px)); max-height: calc(100% - 120px); overflow-y: auto; background: var(--s1); border: 1px solid var(--l3); border-radius: 20px; box-shadow: 0 24px 56px -8px rgba(0,0,0,.7); padding: 20px; display: flex; flex-direction: column; gap: 18px; animation: pop .2s ease; }
+.sim h2 { font-size: 17px; line-height: 24px; }
+.sim .sgrp { display: flex; flex-direction: column; gap: 10px; }
+.sim select.input { height: 40px; }
+.phr { display: flex; flex-direction: column; gap: 6px; }
+.phr button { text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--l2); background: transparent; color: var(--fg2); font-size: 13px; }
+.phr button[aria-pressed="true"] { border-color: var(--t-ok2); background: var(--t-ok); color: var(--fg); }
+.phr small { display: block; font-size: 11px; color: var(--fg3); }
+.convo { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: var(--bg); border: 1px solid var(--l1); font-size: 13px; }
+.convo .you { color: var(--fg2); } .convo .domi { color: var(--fg); } .convo .meta { font-size: 12px; color: var(--fg3); }
+.convo.warn { border-color: var(--t-warn2); } .convo.mute { border-color: var(--t-mute2); }
+.simroom { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; font-size: 13px; }
+.live-step { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--fg2); }
+
+/* ---------- carga inicial */
+.boot { display: flex; flex-direction: column; gap: 24px; }
+.boot .pill { display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px 8px 10px; border-radius: 999px; background: var(--s1); border: 1px solid var(--l2); color: var(--fg2); width: max-content; }
+
+/* ---------- responsive */
+@media (max-width: 1180px) { .row1 { grid-template-columns: 1fr; } .kpis { flex-direction: row; flex-wrap: wrap; } .kpi { flex: 1 1 240px; } .ed { grid-template-columns: 1fr; } }
+@media (max-width: 1000px) { .rcards { grid-template-columns: 1fr; } .pipe-s { grid-template-columns: repeat(3, minmax(0, 1fr)); } .pipe-s > div:nth-child(4) { border-left: 0; } .pipe-s > div:nth-child(n+4) { border-top: 1px solid var(--l1); } .row3, .grid2, .gs-380, .gs-440, .gs-460 { grid-template-columns: 1fr; } }
+@media (max-width: 900px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .side { display: none; }
+  .topbar { display: flex; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40; align-items: center; gap: 10px; height: 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: rgba(8,9,11,.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--l1); }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 41; background: var(--bg); }
+  .topbar .grow { flex: 1; }
+  .core-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 8px; border-radius: 999px; background: var(--s1); border: 1px solid var(--l2); font-size: 12px; color: var(--fg2); text-decoration: none; }
+  .tabbar { display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); background: rgba(12,13,16,.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 1px solid var(--l2); }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; min-height: 52px; justify-content: center; color: var(--fg3); text-decoration: none; font-size: 11px; border: 0; background: transparent; }
+  .tab.on { color: var(--fg); } .tab.on .ic { color: var(--ok); }
+  .main { padding-block: 24px calc(var(--tab-h) + 104px); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .page { gap: 24px; }
+  .sim-fab { bottom: calc(var(--tab-h) + 22px + env(safe-area-inset-bottom, 0px)); }
+  .sim { bottom: calc(var(--tab-h) + 76px + env(safe-area-inset-bottom, 0px)); }
+  .house-wrap { grid-template-columns: 1fr; gap: 14px; }
+  .inet { flex-direction: row; padding-left: 0; justify-content: space-between; gap: 12px; text-align: left; flex-wrap: wrap; }
+  .inet::before { display: none; } .inet .zero { position: static; } .inet .cloud { width: 40px; height: 40px; } .inet .cl { margin-top: 0; flex: 1; }
+}
+@media (max-width: 600px) {
+  h1 { font-size: 26px; line-height: 32px; } h1.big { font-size: 30px; line-height: 36px; }
+  .card { padding: 18px; } .card.tight { padding: 16px; }
+  .room { min-height: 132px; padding: 12px; } .house { grid-auto-rows: minmax(132px, auto); } .fab-x { display: none; } .mk { margin-inline: 8px; width: 38px; height: 38px; }
+  .core-box { width: 76px; height: 44px; } .core-box .sym { left: 31px; top: 8px; } .core-box .lb { left: 22px; top: 31px; width: 18px; } .core-box .key { left: 48px; top: 29px; }
+  .core-tag { display: none; }
+  .rcard .top { grid-template-columns: 1fr; } .rcard .stage { height: 96px; }
+  .rmain { grid-template-columns: 40px minmax(0, 1fr); } .rmain .tr { grid-column: 2; text-align: left; }
+  .opts { grid-template-columns: 1fr; }
+  .sched { grid-template-columns: 1fr; }
+  .pipe-s { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pipe-s > div:nth-child(odd) { border-left: 0; } .pipe-s > div:nth-child(n+3) { border-top: 1px solid var(--l1); } .pipe-s > div:nth-child(4) { border-left: 1px solid var(--l1); }
+  .summary > div { flex-basis: 45%; padding: 0; border-left: 0; }
+  .modal-w { padding: 22px 20px; border-radius: 20px; }
+  .drawer-b { padding: 22px 20px; } .drawer-f { padding-left: 20px; padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .kpi .num { font-size: 34px; line-height: 38px; }
+  .urow { grid-template-columns: 56px minmax(0, 1fr) auto; gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition: none !important; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-inicio" viewBox="0 0 24 24"><path d="M3.5 10.2 12 3.5l8.5 6.7V19a1.5 1.5 0 0 1-1.5 1.5h-4.2v-6h-5.6v6H5A1.5 1.5 0 0 1 3.5 19z"/></symbol>
+    <symbol id="i-ambientes" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-rutinas" viewBox="0 0 24 24"><path d="M20.5 12A8.5 8.5 0 1 1 18 6"/><path d="M20.5 3.5V8H16"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-privacidad" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.3 7.5 9.5 4.4-1.2 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></symbol>
+    <symbol id="i-sistema" viewBox="0 0 24 24"><rect x="5.5" y="5.5" width="13" height="13" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9.5 2.5v3M14.5 2.5v3M9.5 18.5v3M14.5 18.5v3M2.5 9.5h3M2.5 14.5h3M18.5 9.5h3M18.5 14.5h3"/></symbol>
+    <symbol id="i-ayuda" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8 1c0 1.7-2.4 2.2-2.4 3.7"/><path d="M12 17.2h.01"/></symbol>
+    <symbol id="i-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></symbol>
+    <symbol id="i-chevl" viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></symbol>
+    <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></symbol>
+    <symbol id="i-micoff" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M15 10.5V6a3 3 0 0 0-5.8-1.1"/><path d="M9 9v2a3 3 0 0 0 4.9 2.3"/><path d="M18.5 11a6.5 6.5 0 0 1-1 3.4M5.5 11a6.5 6.5 0 0 0 10.6 5M12 17.5V21"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2.5 9a14 14 0 0 1 19 0"/><path d="M5.5 12.5a9.5 9.5 0 0 1 13 0"/><path d="M8.7 16a5 5 0 0 1 6.6 0"/><path d="M12 19.5h.01"/></symbol>
+    <symbol id="i-wifioff" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M8.7 16a5 5 0 0 1 6.6 0"/><path d="M5.5 12.5a9.5 9.5 0 0 1 4-2.2"/><path d="M14.6 10.3a9.5 9.5 0 0 1 3.9 2.2"/><path d="M2.5 9a14 14 0 0 1 3.6-2.4"/><path d="M10.2 5.1A14 14 0 0 1 21.5 9"/><path d="M12 19.5h.01"/></symbol>
+    <symbol id="i-nubeoff" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M6.3 7.6A5.5 5.5 0 0 0 7 18.5h10"/><path d="M20.4 16.4A4 4 0 0 0 17.5 10h-.9A6.5 6.5 0 0 0 9.8 5.1"/></symbol>
+    <symbol id="i-volumen" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3.5v6h3l4.5 4z"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6"/><path d="M18.5 6.2a8.2 8.2 0 0 1 0 11.6"/></symbol>
+    <symbol id="i-brillo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.8"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></symbol>
+    <symbol id="i-reloj" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-luna" viewBox="0 0 24 24"><path d="M20 14.6A8.2 8.2 0 1 1 9.4 4a6.6 6.6 0 0 0 10.6 10.6z"/></symbol>
+    <symbol id="i-alerta" viewBox="0 0 24 24"><path d="M10.3 4 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 4a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4M12 17h.01"/></symbol>
+    <symbol id="i-termo" viewBox="0 0 24 24"><path d="M14 14.6V5a2 2 0 0 0-4 0v9.6a4 4 0 1 0 4 0z"/></symbol>
+    <symbol id="i-vent" viewBox="0 0 24 24"><path d="M3 8.5h9.5a2.8 2.8 0 1 0-2.8-2.8"/><path d="M3 12.5h14.5a2.8 2.8 0 1 1-2.8 2.8"/><path d="M3 16.5h6"/></symbol>
+    <symbol id="i-energia" viewBox="0 0 24 24"><path d="M13 2.5 4.5 13.5H11l-1 8 8.5-11H12z"/></symbol>
+    <symbol id="i-memoria" viewBox="0 0 24 24"><path d="M3 13.5h18"/><path d="M5.6 5.5h12.8l2.6 8v5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5v-5z"/><path d="M7 16.8h.01M10.5 16.8h.01"/></symbol>
+    <symbol id="i-candado" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7.5 4.5v15l12-7.5z"/></symbol>
+    <symbol id="i-editar" viewBox="0 0 24 24"><path d="M12.5 20.5h8"/><path d="M16.4 3.6a2 2 0 0 1 2.9 2.9L7.5 18.3l-3.8 1 1-3.8z"/></symbol>
+    <symbol id="i-actualizar" viewBox="0 0 24 24"><path d="M20 11.5A8 8 0 0 0 5.6 7.2L3.5 9.5"/><path d="M3.5 4.5v5h5"/><path d="M4 12.5a8 8 0 0 0 14.4 4.3l2.1-2.3"/><path d="M20.5 19.5v-5h-5"/></symbol>
+    <symbol id="i-enchufe" viewBox="0 0 24 24"><path d="M12 21.5v-4"/><path d="M9 7.5v-5M15 7.5v-5"/><path d="M6.5 7.5h11v4a5.5 5.5 0 0 1-11 0z"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4.5M12 8h.01"/></symbol>
+    <symbol id="i-enviar" viewBox="0 0 24 24"><path d="M21 3 10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5-7.5-4z"/></symbol>
+    <symbol id="i-luz" viewBox="0 0 24 24"><path d="M9.5 18h5M10.5 21.5h3"/><path d="M12 2.5a6.5 6.5 0 0 0-3.8 11.8c.5.4.8 1 .8 1.6V16h6v-.1c0-.6.3-1.2.8-1.6A6.5 6.5 0 0 0 12 2.5z"/></symbol>
+    <symbol id="i-frase" viewBox="0 0 24 24"><path d="M20.5 14.5a2 2 0 0 1-2 2H8l-4.5 4V5.5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/><path d="M8.5 9v3M12 7.5v6M15.5 9v3"/></symbol>
+    <symbol id="i-chispa" viewBox="0 0 24 24"><path d="M11 3.5 12.9 9l5.6 1.9-5.6 1.9L11 18.5l-1.9-5.7-5.6-1.9L9.1 9z"/><path d="M18.5 3v4M16.5 5h4"/></symbol>
+    <symbol id="i-eliminar" viewBox="0 0 24 24"><path d="M3.5 6.5h17M9 6.5V4h6v2.5"/><path d="M5.8 6.5l1 13.5h10.4l1-13.5"/></symbol>
+    <symbol id="i-encendido" viewBox="0 0 24 24"><path d="M12 3v8.5"/><path d="M6.6 6.6a7.5 7.5 0 1 0 10.8 0"/></symbol>
+    <symbol id="i-actividad" viewBox="0 0 24 24"><path d="M8.5 6.5h12M8.5 12h12M8.5 17.5h12M3.5 6.5h.01M3.5 12h.01M3.5 17.5h.01"/></symbol>
+    <symbol id="i-core" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="10" rx="2.5"/><path d="M7 13h4"/><path d="M16.5 13h.01"/></symbol>
+    <symbol id="i-nodo" viewBox="0 0 24 24"><path d="M6 6.5c0-1.4 2.7-2.5 6-2.5s6 1.1 6 2.5v11c0 1.4-2.7 2.5-6 2.5s-6-1.1-6-2.5z"/><path d="M6 6.5c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/><path d="M9 13.5h.01M12 14h.01M15 13.5h.01"/></symbol>
+    <symbol id="i-anunciar" viewBox="0 0 24 24"><path d="M4 10v4a1 1 0 0 0 1 1h2l6 4.5v-15L7 9H5a1 1 0 0 0-1 1z"/><path d="M17 9.2a4 4 0 0 1 0 5.6"/></symbol>
+    <symbol id="i-senal" viewBox="0 0 24 24"><path d="M5 19.5v-3M9.7 19.5v-7M14.3 19.5v-11M19 19.5v-15"/></symbol>
+    <symbol id="i-mas-h" viewBox="0 0 24 24"><circle cx="6" cy="12" r=".6"/><circle cx="12" cy="12" r=".6"/><circle cx="18" cy="12" r=".6"/></symbol>
+    <symbol id="i-domi" viewBox="0 0 287 288"><path fill="currentColor" stroke="none" fill-rule="evenodd" d="M2,0 L159,0 L159,1 L168,1 L168,2 L175,2 L175,3 L179,3 L179,4 L184,4 L184,5 L187,5 L187,6 L190,6 L190,7 L193,7 L193,8 L199,9 L199,10 L201,10 L201,11 L203,11 L203,12 L205,12 L205,13 L207,13 L207,14 L209,14 L209,15 L211,15 L211,16 L213,16 L213,17 L217,18 L218,20 L220,20 L221,22 L223,22 L224,24 L226,24 L227,26 L229,26 L229,27 L230,27 L231,29 L233,29 L233,30 L234,30 L234,31 L235,31 L235,32 L236,32 L237,34 L239,34 L239,35 L240,35 L240,36 L241,36 L241,37 L242,37 L242,38 L243,38 L243,39 L244,39 L244,40 L245,40 L245,41 L246,41 L246,42 L247,42 L247,43 L248,43 L248,44 L249,44 L249,45 L250,45 L250,46 L252,47 L252,49 L253,49 L253,50 L254,50 L254,51 L256,52 L256,54 L257,54 L257,55 L259,56 L259,58 L260,58 L260,59 L262,60 L262,62 L263,62 L263,63 L264,63 L264,65 L266,66 L267,70 L269,71 L269,73 L270,73 L270,75 L271,75 L271,77 L272,77 L272,79 L273,79 L273,81 L274,81 L274,84 L275,84 L275,86 L276,86 L276,88 L277,88 L277,91 L278,91 L278,93 L279,93 L279,96 L280,96 L280,99 L281,99 L281,102 L282,102 L282,106 L283,106 L284,116 L285,116 L285,123 L286,123 L286,136 L287,136 L287,146 L286,146 L286,159 L285,159 L284,171 L283,171 L282,179 L281,179 L281,182 L280,182 L280,185 L279,185 L279,188 L278,188 L277,194 L276,194 L276,196 L275,196 L275,198 L274,198 L274,201 L273,201 L273,203 L272,203 L272,205 L271,205 L271,207 L270,207 L269,211 L267,212 L267,214 L266,214 L265,218 L263,219 L263,221 L261,222 L261,224 L260,224 L260,225 L258,226 L258,228 L257,228 L257,229 L256,229 L256,230 L254,231 L254,233 L253,233 L253,234 L252,234 L252,235 L250,236 L250,238 L249,238 L249,239 L248,239 L248,240 L247,240 L247,241 L246,241 L246,242 L245,242 L245,243 L244,243 L244,244 L243,244 L243,245 L242,245 L242,246 L241,246 L241,247 L240,247 L240,248 L239,248 L239,249 L238,249 L237,251 L235,251 L235,252 L234,252 L234,253 L233,253 L233,254 L232,254 L232,255 L231,255 L230,257 L228,257 L228,258 L227,258 L226,260 L224,260 L223,262 L221,262 L220,264 L218,264 L218,265 L217,265 L217,266 L215,266 L214,268 L210,269 L209,271 L207,271 L207,272 L205,272 L205,273 L203,273 L203,274 L201,274 L201,275 L199,275 L199,276 L196,276 L196,277 L194,277 L194,278 L192,278 L192,279 L189,279 L189,280 L187,280 L187,281 L184,281 L184,282 L180,282 L180,283 L177,283 L177,284 L173,284 L173,285 L168,285 L168,286 L162,286 L162,287 L153,287 L153,288 L98,288 L0,288 L0,242 L1,242 L1,238 L2,238 L2,235 L3,235 L3,233 L4,233 L5,229 L6,229 L6,228 L8,227 L8,225 L9,225 L10,223 L12,223 L12,222 L13,222 L14,220 L16,220 L16,219 L18,219 L18,218 L20,218 L20,217 L22,217 L22,216 L26,216 L26,215 L32,215 L32,214 L151,214 L151,213 L155,213 L155,212 L158,212 L158,211 L160,211 L160,210 L162,210 L162,209 L164,209 L164,208 L168,207 L169,205 L171,205 L171,204 L172,204 L172,203 L173,203 L173,202 L174,202 L174,201 L175,201 L175,200 L176,200 L176,199 L177,199 L177,198 L179,197 L179,195 L180,195 L180,194 L181,194 L181,192 L183,191 L183,189 L184,189 L184,187 L185,187 L185,185 L186,185 L186,182 L187,182 L188,174 L189,174 L189,112 L188,112 L188,107 L187,107 L187,104 L186,104 L186,101 L185,101 L184,97 L182,96 L182,94 L180,93 L180,91 L179,91 L179,90 L178,90 L178,89 L177,89 L177,88 L176,88 L176,87 L175,87 L175,86 L174,86 L173,84 L171,84 L170,82 L168,82 L168,81 L166,81 L166,80 L164,80 L164,79 L162,79 L162,78 L159,78 L159,77 L155,77 L155,76 L35,76 L35,75 L29,75 L29,74 L25,74 L25,73 L23,73 L23,72 L20,72 L19,70 L17,70 L16,68 L14,68 L14,67 L13,67 L13,66 L12,66 L12,65 L11,65 L11,64 L9,63 L9,61 L7,60 L7,58 L6,58 L6,56 L5,56 L5,54 L4,54 L4,51 L3,51 L3,47 L2,47 Z M78,112 L140,112 L140,113 L142,113 L142,114 L144,115 L144,117 L145,117 L145,179 L144,179 L144,181 L143,181 L143,182 L141,182 L141,183 L140,183 L77,183 L77,182 L76,182 L76,181 L74,180 L74,178 L73,178 L73,118 L74,118 L74,115 L75,115 L76,113 L78,113 Z"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <aside class="side" id="side" aria-label="Navegación principal"></aside>
+  <div style="min-width:0">
+    <header class="topbar" id="topbar"></header>
+    <main class="main" id="main" tabindex="-1"></main>
+  </div>
+</div>
+<nav class="tabbar" id="tabbar" aria-label="Secciones"></nav>
+<div id="layer"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<button class="sim-fab" id="simFab" type="button" data-act="toggleSim" aria-expanded="false" aria-controls="sim"><span class="pulse"></span>Simulador<span class="fab-x">&nbsp;de la empresa</span></button>
+<div class="sim" id="sim" hidden role="dialog" aria-label="Simulador de la empresa"></div>
+
+<script>
+'use strict';
+(() => {
+/* ================================================================ utilidades */
+const MIN = 60000, HR = 3600000;
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ic = (n, c = '') => `<svg class="ic ${c}" aria-hidden="true"><use href="#i-${n}"></use></svg>`;
+const secs = v => v.toFixed(1).replace('.', ',') + ' s';
+const hhmm = t => new Date(t).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const DAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const DAYS_L = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+const REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const LOGO = `<svg aria-hidden="true"><use href="#i-domi"></use></svg><b>DOMI</b>`;
+function ago(t) { const d = Date.now() - t; if (d < MIN) return 'recién'; if (d < HR) return 'hace ' + Math.round(d / MIN) + ' min'; if (new Date(t).toDateString() === new Date().toDateString()) return 'a las ' + hhmm(t); return 'ayer · ' + hhmm(t); }
+function deOf(name) { const n = name.trim().toLowerCase(); const fem = /(a|ión|ción|dad)$/.test(n) && !/(día|mapa)$/.test(n); return (fem ? 'de la ' : 'del ') + n; }
+function joinY(a) { return a.length <= 1 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' y ' + a[a.length - 1]; }
+
+/* ================================================================ datos de ejemplo */
+function seed() {
+  const n = Date.now();
+  return {
+    v: 1,
+    rooms: [
+      { id: 'living', name: 'Sala de directorio', de: 'de la sala de directorio', nodo: 'N-01', color: 'grafito', plugged: true, mic: true, volume: 60, brightness: 70, dnd: true, luz: true, aire: true, equipos: ['Luz de la sala', 'Aire acondicionado'], core: true, signal: -54, lastOrder: n - 4 * MIN },
+      { id: 'cocina', name: 'Sala de reuniones', de: 'de la sala de reuniones', nodo: 'N-02', color: 'blanco', plugged: true, mic: true, volume: 70, brightness: 70, dnd: false, luz: true, aire: false, equipos: ['Luz de la sala'], signal: -58, lastOrder: n - 26 * MIN },
+      { id: 'cuarto', name: 'Despacho de presidencia', de: 'del despacho de presidencia', nodo: 'N-03', color: 'gris claro', plugged: true, mic: false, muteAt: n - (3 * HR + 32 * MIN), volume: 40, brightness: 30, dnd: true, luz: true, aire: false, equipos: ['Luz del despacho'], signal: -49, lastOrder: n - 4 * HR },
+      { id: 'dormitorio', name: 'Oficina de legales', de: 'de la oficina de legales', nodo: 'N-04', color: 'grafito', plugged: false, lostAt: n - (3 * HR + 47 * MIN), mic: true, volume: 50, brightness: 40, dnd: true, luz: true, aire: true, equipos: ['Luz de la oficina', 'Aire acondicionado'], signal: null, lastOrder: n - 5 * HR },
+    ],
+    routines: [
+      { id: 'r1', name: 'Cierre de oficina', icon: 'luna', on: true, phrase: { on: true, text: 'DOMI, cerrar oficina' }, schedule: { on: true, time: '23:30', days: [0, 1, 2, 3, 4, 5, 6] }, actions: [{ type: 'luces', mode: 'apagar', target: ['living', 'cocina'] }, { type: 'luzNodo', value: 10 }, { type: 'clima', mode: 'temperatura', target: ['dormitorio'], temp: 24 }], lastRun: n - 18 * HR },
+      { id: 'r2', name: 'Apertura de oficina', icon: 'reloj', on: true, phrase: { on: false, text: '' }, schedule: { on: true, time: '07:00', days: [0, 1, 2, 3, 4] }, actions: [{ type: 'luces', mode: 'encender', target: ['cuarto'] }, { type: 'anunciar', text: 'Buen día, comienza la jornada', target: 'cuarto' }], lastRun: n - 10 * HR },
+      { id: 'r3', name: 'Inicio de reunión', icon: 'inicio', on: true, phrase: { on: true, text: 'DOMI, iniciar reunión' }, schedule: { on: false, time: '18:00', days: [] }, actions: [{ type: 'luces', mode: 'encender', target: ['living'] }, { type: 'clima', mode: 'temperatura', target: ['living'], temp: 23 }], lastRun: n - 40 * MIN },
+      { id: 'r4', name: 'Receso de la reunión', icon: 'anunciar', on: true, phrase: { on: false, text: '' }, schedule: { on: true, time: '20:30', days: [0, 1, 2, 3, 4, 5, 6] }, actions: [{ type: 'anunciar', text: 'El receso terminó', target: 'todos' }], lastRun: n - 21 * HR },
+      { id: 'r5', name: 'Modo presentación', icon: 'play', on: false, phrase: { on: true, text: 'DOMI, modo presentación' }, schedule: { on: false, time: '21:00', days: [] }, actions: [{ type: 'luces', mode: 'apagar', target: ['cocina'] }, { type: 'luzNodo', value: 20 }], lastRun: null },
+    ],
+    activity: [
+      { t: n - 4 * MIN, type: 'voz', title: 'Sala de directorio · luz apagada', detail: 'Orden por voz · respondió en 1,9 s' },
+      { t: n - 26 * MIN, type: 'pregunta', title: 'Sala de reuniones · pregunta respondida', detail: 'Pregunta abierta · respondió en 2,6 s' },
+      { t: n - 40 * MIN, type: 'rutina', title: 'Rutina «Inicio de reunión»', detail: 'Luz de la sala de directorio encendida · aire en 23 °C' },
+      { t: n - (3 * HR + 32 * MIN), type: 'privacidad', title: 'Despacho de presidencia · micrófono cortado', detail: 'Desde la tapa del NODO' },
+      { t: n - (3 * HR + 47 * MIN), type: 'conexion', title: 'Oficina de legales · NODO desconectado', detail: 'Dejó de responder al CORE' },
+    ],
+    privacy: { transcripts: false, log: true, retention: 7 },
+    core: { online: true, link: true, upSince: n - 12 * 24 * HR, mode: 'core' },
+    stats: { fast: 40, llm: 6, extra: [] },
+    seq: { nodo: 5, id: 6 },
+  };
+}
+const KEY = 'domi-panel-empresa-v1';
+function load() { try { const j = localStorage.getItem(KEY); if (!j) return null; const d = JSON.parse(j); return d && d.v === 1 ? d : null; } catch (e) { return null; } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* sin almacenamiento: la demo sigue en memoria */ } }
+let S = load() || seed();
+
+/* ================================================================ estado de la interfaz */
+const VIEWS = ['inicio', 'ambientes', 'rutinas', 'privacidad', 'sistema', 'ayuda'];
+const UI = {
+  view: 'inicio', boot: true, drawer: null, modal: null, confirm: null, editor: null, sim: false, more: false,
+  light: {}, busy: {}, search: {}, booting: {}, nameErr: null, pipe: -1, coreBusy: null, retryMsg: null,
+  simRoom: 'living', simPhrase: 'luz', convo: null, liveStep: null,
+  help: { tema: 'Un NODO', msg: '', email: 'administracion@empresa.ejemplo', errors: {}, sending: false, sent: null },
+  privConfirm: null, temp: 54, fan: 38, watt: 6.8,
+};
+const room = id => S.rooms.find(r => r.id === id);
+const status = r => UI.booting[r.id] ? 'boot' : !r.plugged ? 'off' : !r.mic ? 'mute' : 'on';
+function lightOf(r) { const st = status(r); if (st === 'off' || st === 'boot') return 'off'; if (st === 'mute') return 'silencio'; return UI.light[r.id] || 'reposo'; }
+const LIGHT = {
+  reposo: { label: 'Activo', b: 'ok', c: '#c9cdd6', mk: 'var(--ok)', desc: 'En reposo. Cuando digas «DOMI», la franja superior se enciende en verde y empieza a escuchar.' },
+  escuchando: { label: 'Escuchando', b: 'ok', c: '#34e07a', mk: 'var(--ok)', desc: 'La franja superior se enciende en verde: oyó su nombre y está captando la orden.' },
+  pensando: { label: 'Pensando', b: 'think', c: '#3d7bff', mk: 'var(--think)', desc: 'Un anillo azul gira mientras el CORE transcribe y entiende la orden, dentro de la empresa.' },
+  respondiendo: { label: 'Respondiendo', b: 'resp', c: '#5a6bff', mk: 'var(--resp)', desc: 'La luz baja hacia la base y late con la respuesta. Mientras habla, el NODO no capta para no escucharse.' },
+  voz: { label: 'Voz en acción', b: 'voz', c: '#2fd3ff', mk: 'var(--voz)', desc: 'Las columnas siguen la voz de DOMI como un ecualizador mientras confirma lo que hizo.' },
+  silencio: { label: 'Micrófono cortado', b: 'mute', c: '#ff453a', mk: 'var(--mute)', desc: 'La matriz se apaga y el ícono de la tapa queda en rojo. Los micrófonos no tienen energía hasta que alguien vuelva a tocar la tapa.' },
+  off: { label: 'Desconectado', b: 'warn', c: '#6a6e77', mk: 'var(--warn)', desc: 'El CORE no recibe señal de este NODO.' },
+};
+function badgeFor(r) {
+  const st = status(r);
+  if (st === 'boot') return `<span class="badge b-think"><i></i>Conectando…</span>`;
+  const L = LIGHT[lightOf(r)];
+  return `<span class="badge b-${L.b}"><i></i>${L.label}</span>`;
+}
+function capOf(r) {
+  const st = status(r);
+  if (st === 'boot') return 'Conectando…';
+  if (st === 'off') return 'Desconectado · ' + hhmm(r.lostAt || Date.now());
+  if (st === 'mute') return 'Micrófono cortado · ' + hhmm(r.muteAt || Date.now());
+  const l = lightOf(r); if (l !== 'reposo') return LIGHT[l].label + ' · ahora';
+  return 'Escucha · en reposo';
+}
+function detailOf(r) {
+  const st = status(r);
+  if (st === 'off') return 'desde ' + hhmm(r.lostAt || Date.now());
+  if (st === 'mute') return 'desde ' + hhmm(r.muteAt || Date.now());
+  if (st === 'boot') return 'arrancando';
+  if (lightOf(r) !== 'reposo') return 'ahora';
+  return r.lastOrder ? 'última orden ' + ago(r.lastOrder).replace('hace ', 'hace ') : 'sin órdenes todavía';
+}
+
+/* ================================================================ matriz LED del NODO (fórmulas del artefacto DOMI NODO v2) */
+const noise = a => Math.sin(a * 1.7) * 0.5 + Math.sin(a * 3.1 + 1.3) * 0.3 + Math.sin(a * 5.3 + 0.4) * 0.2;
+const MMC = 38.8 * (150 / 13) * Math.PI / 180;
+function ledI(s, c, r, t) {
+  const cc = 6, cr = 3, x = (c - cc) / cc, v = r / 6;
+  switch (s) {
+    case 'escuchando': return Math.exp(-(((v - 0.95) / 0.2) ** 2)) * (0.5 + 0.5 * Math.cos(x * Math.PI / 2)) * (0.78 + 0.22 * Math.sin(t * 2.2));
+    case 'pensando': { const dx = (c - cc) * MMC, dy = (r - cr) * 7, d = Math.hypot(dx, dy); let ph = Math.atan2(dy, dx) / (Math.PI * 2) - t * 0.55; ph -= Math.floor(ph); return Math.exp(-(((d - 19) / 4.5) ** 2)) * (0.3 + 0.7 * ph ** 1.6); }
+    case 'respondiendo': { const env = 0.5 + 0.5 * Math.abs(Math.sin(t * 5.2) * Math.sin(t * 1.9 + 0.6)); return Math.exp(-((v / 0.28) ** 2)) * (0.55 + 0.45 * Math.cos(x * Math.PI / 2)) * env; }
+    case 'voz': { const h = 0.1 + 0.42 * Math.abs(noise(t * 2.4 + Math.abs(c - cc) * 0.9)) * (1 - 0.5 * Math.abs(x)); return Math.max(0, Math.min(1, (h - Math.abs(v - 0.5)) * 6)) * (0.6 + 0.4 * Math.cos(x * Math.PI / 2)); }
+    case 'reposo': return 0.34 * (0.8 + 0.2 * Math.sin(t * 1.3)) * Math.exp(-((v / 0.18) ** 2)) * (0.5 + 0.5 * Math.cos(x * Math.PI / 2));
+    default: return 0;
+  }
+}
+function hexA(h, a) { const n = parseInt(h.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; }
+function drawLED(cv, state, t, bright) {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const pitch = Math.min((w * 0.74) / 13, (h * 0.66) / 7), rad = pitch * 0.33;
+  const ox = (w - pitch * 12) / 2, oy = (h - pitch * 6) / 2;
+  const col = (LIGHT[state] || LIGHT.off).c; const bf = 0.35 + 0.65 * (bright == null ? 0.8 : bright);
+  for (let c = 0; c < 13; c++) for (let r = 0; r < 7; r++) {
+    const I = ledI(state, c, r, t); const x = ox + c * pitch, y = oy + (6 - r) * pitch;
+    g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2);
+    if (I > 0.06) { g.shadowColor = col; g.shadowBlur = pitch * 1.4 * I; g.fillStyle = hexA(col, Math.min(1, (0.3 + 0.7 * I) * bf)); }
+    else { g.shadowBlur = 0; g.fillStyle = state === 'off' ? 'rgba(255,255,255,0.045)' : 'rgba(255,255,255,0.085)'; }
+    g.fill();
+  }
+  g.shadowBlur = 0;
+  if (state === 'silencio') {
+    const cx = w / 2, cy = h / 2, s = pitch * 1.1;
+    g.shadowColor = '#ff453a'; g.shadowBlur = 12; g.strokeStyle = '#ff453a'; g.lineWidth = Math.max(1.5, pitch * 0.22); g.lineCap = 'round';
+    g.beginPath(); g.moveTo(cx - s * 0.32, cy - s * 0.2); g.lineTo(cx - s * 0.32, cy + s * 0.05); g.arc(cx, cy + s * 0.05, s * 0.32, Math.PI, 0, true); g.lineTo(cx + s * 0.32, cy - s * 0.2); g.stroke();
+    g.beginPath(); g.moveTo(cx, cy + s * 0.37); g.lineTo(cx, cy + s * 0.62); g.stroke();
+    g.beginPath(); g.moveTo(cx - s * 0.6, cy - s * 0.6); g.lineTo(cx + s * 0.6, cy + s * 0.6); g.stroke();
+    g.shadowBlur = 0;
+  }
+}
+let lastFrame = 0;
+function frame(ts) {
+  if (ts - lastFrame > 33) {
+    lastFrame = ts; const t = REDUCED ? 0.7 : ts / 1000;
+    for (const cv of $$('canvas[data-led]')) {
+      const id = cv.dataset.room; let st = cv.dataset.state, br = null;
+      if (id) { const r = room(id); if (!r) continue; st = lightOf(r); br = r.brightness / 100; }
+      if (st === 'modal') st = UI.modal && UI.modal.heard ? 'escuchando' : 'reposo';
+      drawLED(cv, st, t, br);
+    }
+  }
+  if (!REDUCED) requestAnimationFrame(frame);
+}
+const led = (id, cls = '') => `<span class="stage ${cls}"><canvas data-led data-room="${esc(id)}" role="img" aria-label="Luz del NODO"></canvas></span>`;
+const ledState = (st, cls = '') => `<span class="stage ${cls}"><canvas data-led data-state="${st}" role="img" aria-label="Luz del NODO"></canvas></span>`;
+
+/* ================================================================ piezas */
+function btn(label, act, o = {}) {
+  const k = o.kind || 'secondary';
+  return `<button type="button" class="btn ${k}${o.sm ? ' sm' : ''}${o.wide ? ' wide' : ''}" data-act="${act}"${o.arg != null ? ` data-arg="${esc(o.arg)}"` : ''}${o.disabled ? ' disabled' : ''}${o.id ? ` id="${o.id}"` : ''}>${o.icon ? ic(o.icon) : ''}${esc(label)}</button>`;
+}
+const sw = (on, act, arg, label, dis) => `<button type="button" class="switch" role="switch" aria-checked="${!!on}" aria-label="${esc(label)}" data-act="${act}"${arg != null ? ` data-arg="${esc(arg)}"` : ''}${dis ? ' disabled' : ''}></button>`;
+function head(eb, title, sub, actions = '', dot = 'var(--ok)', big = false) {
+  return `<header class="phead"><div class="phead-t"><p class="eyebrow"><span class="dot" style="--c:${dot}"></span>${eb}</p><h1${big ? ' class="big"' : ''}>${title}</h1>${sub ? `<p class="lead">${sub}</p>` : ''}</div>${actions ? `<div class="phead-a">${actions}</div>` : ''}</header>`;
+}
+const EV = { voz: ['frase', 'var(--t-ok)', 'var(--ok)'], pregunta: ['chispa', 'var(--t-resp)', 'var(--resp)'], rutina: ['rutinas', 'var(--t-think)', 'var(--think)'], privacidad: ['micoff', 'var(--t-mute)', 'var(--mute)'], conexion: ['wifioff', 'var(--t-warn)', 'var(--warn)'], nodo: ['nodo', 'var(--t-ok)', 'var(--ok)'], sistema: ['core', 'var(--t-think)', 'var(--think)'] };
+function evRow(e) { const [i, bg, fg] = EV[e.type] || EV.sistema; return `<div class="ev"><span class="h">${hhmm(e.t)}</span><span class="e" style="--et:${bg};--ec:${fg}">${ic(i, 's16')}</span><span><b>${esc(e.title)}</b><small>${esc(e.detail)}</small></span></div>`; }
+function log(type, title, detail) { if (!S.privacy.log && type !== 'conexion') return; S.activity.unshift({ t: Date.now(), type, title, detail }); S.activity = S.activity.slice(0, 40); }
+function toast(kind, title, text) {
+  const map = { ok: ['check', 'var(--t-ok)', 'var(--ok)'], info: ['info', 'var(--t-think)', 'var(--think)'], err: ['alerta', 'var(--t-err)', 'var(--err)'], warn: ['alerta', 'var(--t-warn)', 'var(--warn)'] };
+  const [i, bg, fg] = map[kind] || map.info;
+  const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', kind === 'err' ? 'alert' : 'status');
+  el.innerHTML = `<span class="ti" style="--tt:${bg};--tc:${fg}">${ic(i, 's16')}</span><span><b>${esc(title)}</b>${text ? `<span>${esc(text)}</span>` : ''}</span>`;
+  $('#toasts').appendChild(el); setTimeout(() => { el.style.transition = 'opacity .3s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 320); }, 4200);
+}
+
+/* ================================================================ rutinas: textos */
+function roomsText(ids) { if (!ids || !ids.length) return ''; if (ids.includes('todas')) return 'de toda la empresa'; const rs = ids.map(room).filter(Boolean); return joinY(rs.map((r, i) => i === 0 ? r.de : r.de.replace(/^de(l| la) /, m => m.trim() === 'del' ? 'el ' : 'la '))); }
+function actionText(a) {
+  if (a.type === 'luces') { const all = a.target.includes('todas'); const t = all ? 'todas las luces' : (a.target.length > 1 ? 'las luces ' : 'la luz ') + roomsText(a.target); return (a.mode === 'apagar' ? 'apaga ' : 'enciende ') + (a.target.length ? t : 'las luces (elegí dónde)'); }
+  if (a.type === 'clima') { const where = a.target.length ? roomsText(a.target) : '(elegí dónde)'; return a.mode === 'apagar' ? 'apaga el aire ' + where : 'pone el aire ' + where + ' en ' + a.temp + ' °C'; }
+  if (a.type === 'luzNodo') return (a.value <= 50 ? 'baja' : 'sube') + ' la luz de los NODO al ' + a.value + ' %';
+  if (a.type === 'anunciar') { const tgt = a.target === 'todos' ? 'en todos los NODO' : 'en el NODO ' + ((room(a.target) || {}).de || ''); return 'anuncia «' + (a.text || '…') + '» ' + tgt; }
+  return '';
+}
+function routineSentence(ro) { const parts = ro.actions.map(actionText).filter(Boolean); return parts.length ? joinY(parts) : 'todavía no hace nada'; }
+function triggerText(ro) {
+  const p = ro.phrase.on && ro.phrase.text ? '«' + ro.phrase.text + '»' : null;
+  const s = ro.schedule.on && ro.schedule.days.length ? ro.schedule.time + ' · ' + daysText(ro.schedule.days) : null;
+  return [p, s];
+}
+function daysText(d) { if (d.length === 7) return 'todos los días'; if (d.length === 5 && [0, 1, 2, 3, 4].every(x => d.includes(x))) return 'lunes a viernes'; if (d.length === 2 && d.includes(5) && d.includes(6)) return 'fines de semana'; return d.slice().sort().map(x => DAYS[x].toLowerCase()).join(', '); }
+function nextRun(ro, from = Date.now()) {
+  if (!ro.on || !ro.schedule.on || !ro.schedule.days.length) return null;
+  const [hh, mm] = ro.schedule.time.split(':').map(Number);
+  for (let k = 0; k < 8; k++) { const d = new Date(from); d.setDate(d.getDate() + k); d.setHours(hh, mm, 0, 0); const wd = (d.getDay() + 6) % 7; if (d.getTime() > from && ro.schedule.days.includes(wd)) return d.getTime(); }
+  return null;
+}
+function dayLabel(t) { const d = new Date(t), n = new Date(); const diff = Math.round((new Date(d.toDateString()) - new Date(n.toDateString())) / 86400000); return diff === 0 ? 'hoy' : diff === 1 ? 'mañana' : DAYS_L[(d.getDay() + 6) % 7]; }
+
+/* ================================================================ métricas */
+const BASE_TIMES = [2.3, 2.2, 2.0, 1.9, 2.1, 2.0, 2.2, 2.4, 2.1, 1.9, 2.0, 2.1, 1.8, 2.6, 2.0, 1.9, 2.2, 2.1];
+function median(a) { const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length ? (s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2) : 0; }
+function medianToday() { return median(BASE_TIMES.concat(S.stats.extra.map(e => e.s))); }
+function ordersToday() { return S.stats.fast + S.stats.llm; }
+
+/* ================================================================ vistas */
+function vSide() {
+  const n = S.rooms.length, act = S.routines.filter(r => r.on).length;
+  const NAV = [['inicio', 'Inicio', 'inicio', ''], ['ambientes', 'Ambientes', 'ambientes', n], ['rutinas', 'Rutinas', 'rutinas', act], ['privacidad', 'Privacidad', 'privacidad', ''], ['sistema', 'Sistema', 'sistema', ''], ['ayuda', 'Ayuda', 'ayuda', '']];
+  return `<a class="brand" href="#inicio" aria-label="DOMI, ir a Inicio">${LOGO}</a>
+  <div class="home-card"><span class="home-ic">${ic('inicio', 's16')}</span><span><b>Sede central</b><small>${n} ambientes · red local</small></span></div>
+  <p class="eyebrow side-eb">Menú</p>
+  <nav class="nav">${NAV.map(([id, l, i, c]) => `<a href="#${id}" class="nav-i${UI.view === id ? ' on' : ''}"${UI.view === id ? ' aria-current="page"' : ''}>${ic(i)}<span>${l}</span>${c !== '' && UI.view !== id ? `<span class="cnt">${c}</span>` : ''}</a>`).join('')}</nav>
+  <div class="side-fill"></div>
+  ${coreMini()}
+  <div class="user"><span class="avatar">L</span><span><b>Administración</b><small>Administra la sede</small></span></div>`;
+}
+function coreState() { if (UI.coreBusy === 'reboot') return ['Reiniciando…', 'var(--think)']; if (!S.core.online) return ['Sin conexión', 'var(--warn)']; return ['En línea · sala técnica · red local', 'var(--ok)']; }
+function coreMini() {
+  const [txt, c] = coreState();
+  return `<a class="core-mini" href="#sistema"><span class="row">${ic('core', 's16')}<b>DOMI CORE</b><span class="dot" style="--c:${c}"></span></span><span class="cap muted">${txt}</span>
+  <span class="row cap"><span class="muted" style="flex:1">Memoria</span><span class="mono">3,1 / 8 GB</span></span><span class="bar"><i style="width:39%"></i></span><span class="cap faint">Funciona sin internet</span></a>`;
+}
+function vTop() { const [txt, c] = coreState(); return `<a class="brand" href="#inicio" aria-label="DOMI, ir a Inicio">${LOGO}</a><span class="grow"></span><a class="core-pill" href="#sistema"><span class="dot" style="--c:${c}"></span>${S.core.online ? 'CORE en línea' : 'CORE sin conexión'}</a><span class="avatar" aria-hidden="true">L</span>`; }
+function vTabs() {
+  const T = [['inicio', 'Inicio', 'inicio'], ['ambientes', 'Ambientes', 'ambientes'], ['rutinas', 'Rutinas', 'rutinas'], ['privacidad', 'Privacidad', 'privacidad']];
+  const moreOn = UI.view === 'sistema' || UI.view === 'ayuda';
+  return T.map(([id, l, i]) => `<a class="tab${UI.view === id ? ' on' : ''}" href="#${id}"${UI.view === id ? ' aria-current="page"' : ''}>${ic(i)}<span>${l}</span></a>`).join('') + `<button type="button" class="tab${moreOn ? ' on' : ''}" data-act="more" aria-expanded="${UI.more}">${ic('mas-h')}<span>Más</span></button>`;
+}
+function offlineBanner() {
+  if (S.core.online && UI.coreBusy !== 'reboot') return '';
+  if (UI.coreBusy === 'reboot') return `<div class="offline-banner" role="status"><span class="tile">${ic('actualizar', 's24')}</span><div><p class="eyebrow"><span class="dot" style="--c:var(--think)"></span>Reiniciando</p><h2>El CORE se está reiniciando</h2><p class="muted">Tarda unos segundos. Las rutinas y los NODO vuelven solos cuando termine.</p></div><span class="spin lg"></span></div>`;
+  const retrying = UI.coreBusy === 'retry';
+  return `<div class="offline-banner" role="alert"><span class="tile">${ic('core', 's24')}</span><div><p class="eyebrow"><span class="dot" style="--c:var(--warn)"></span>Sin conexión</p><h2>Se cortó la conexión con el CORE</h2><p class="muted">Este panel vive en el CORE, dentro de tu empresa. Lo que ves puede no estar actualizado y los NODO avisan por voz que no pueden responder.</p>
+  ${UI.retryMsg ? `<p class="note warn">${ic('alerta', 's16')}<span>${esc(UI.retryMsg)}</span></p>` : ''}
+  <ul class="steps" style="margin-top:4px"><li><span class="n">1</span>Revisá que el CORE esté enchufado y con la barra de luz encendida.</li><li><span class="n">2</span>Confirmá que este dispositivo siga conectado al Wi-Fi de la empresa.</li><li><span class="n">3</span>Si cambiaste la contraseña del Wi-Fi, volvé a conectar el CORE.</li></ul></div>
+  ${retrying ? '<span class="spin lg" aria-label="Reintentando"></span>' : btn('Reintentar', 'retryCore', { kind: 'primary', icon: 'actualizar', id: 'retry-core' })}</div>`;
+}
+function bootView() {
+  return `<div class="boot" aria-busy="true"><span class="pill"><span class="spin"></span>Conectando con el CORE…</span>
+  <div style="display:flex;flex-direction:column;gap:14px"><div class="skel" style="width:220px;height:12px"></div><div class="skel" style="width:min(560px,90%);height:42px"></div><div class="skel" style="width:min(620px,95%);height:16px"></div></div>
+  <div class="row1"><div class="card" style="height:400px;display:grid;grid-template-columns:1fr 1fr;gap:8px">${'<div class="skel" style="height:100%"></div>'.repeat(4)}</div><div class="kpis">${'<div class="card kpi"><div class="skel" style="width:120px;height:10px"></div><div class="skel" style="width:80px;height:36px"></div><div class="skel" style="width:200px;height:12px"></div></div>'.repeat(3)}</div></div></div>`;
+}
+
+/* ---------- Inicio */
+function vInicio() {
+  const rs = S.rooms, on = rs.filter(r => status(r) === 'on').length;
+  const mute = rs.filter(r => status(r) === 'mute'), off = rs.filter(r => status(r) === 'off');
+  let title = !S.core.online ? 'Se cortó la conexión con el CORE.' : on === rs.length ? 'Todos los ambientes te escuchan.' : `${on} de ${rs.length} ambientes te escuchan.`;
+  const issues = [];
+  if (mute.length) issues.push((mute.length === 1 ? `${mute[0].de.replace(/^de(l| la) /, m => m.trim() === 'del' ? 'El ' : 'La ')} tiene` : joinY(mute.map(r => r.name)) + ' tienen') + ' el micrófono cortado desde la tapa');
+  if (off.length) issues.push((off.length === 1 ? `${off[0].de.replace(/^de(l| la) /, m => m.trim() === 'del' ? 'el ' : 'la ')} está` : joinY(off.map(r => r.name)) + ' están') + ' desconectado' + (off.length > 1 ? 's' : ''));
+  let sub = issues.length ? cap(joinY(issues)) + '. Ningún audio salió de la empresa.' : 'Todos los NODO escuchan y el CORE responde dentro de tu red. Ningún audio salió de la empresa.';
+  const now = new Date(); const date = now.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }) + ' · ' + hhmm(now);
+  const fast = S.stats.fast, llm = S.stats.llm, tot = fast + llm, med = medianToday();
+  const pct = v => Math.max(0, Math.min(100, v / 4 * 100));
+  const up = S.routines.map(r => ({ r, t: nextRun(r) })).filter(x => x.t).sort((a, b) => a.t - b.t).slice(0, 3);
+  const hasLeave = S.routines.some(r => /me voy|salgo/i.test(r.name + ' ' + r.phrase.text));
+  return `${offlineBanner()}<div class="${!S.core.online ? 'dim' : ''}" style="display:flex;flex-direction:column;gap:32px">
+  ${head(`<span data-clock>${esc(date)}</span>`, esc(title), esc(sub), btn('Probar una orden', 'openSim', { icon: 'frase' }) + btn('Agregar NODO', 'addNodo', { kind: 'primary', icon: 'mas' }), 'var(--ok)', true)}
+  <div class="row1">
+    <section class="card map-card" aria-label="Tu empresa ahora">
+      <div class="card-h"><div class="grow" style="display:flex;flex-direction:column;gap:6px"><p class="eyebrow"><span class="dot"></span>En vivo · red local</p><h3>Tu empresa ahora</h3></div>
+      <div class="legend"><span><span class="dot" style="--c:var(--ok)"></span>Escucha</span><span><span class="dot" style="--c:var(--resp)"></span>Responde</span><span><span class="dot" style="--c:var(--mute)"></span>Micrófono cortado</span><span><span class="dot" style="--c:var(--warn)"></span>Desconectado</span></div></div>
+      ${houseMap()}
+    </section>
+    <div class="kpis">
+      <div class="card tight kpi"><p class="lbl eyebrow">${ic('frase', 's16')}Órdenes de hoy</p><div class="val"><span class="num">${tot}</span><span class="grow"></span><span class="routes" title="Ruta rápida y preguntas abiertas"><i style="flex:${fast};background:var(--ok)"></i><i style="flex:${Math.max(llm, 1)};background:var(--resp)"></i></span></div><p class="small muted">${fast} por la ruta rápida de la empresa · ${llm} preguntas abiertas</p></div>
+      <div class="card tight kpi"><p class="lbl eyebrow">${ic('reloj', 's16')}Tiempo de respuesta</p><div class="val"><span class="num">${med.toFixed(1).replace('.', ',')}</span><span class="muted" style="margin-bottom:6px">s</span><span class="grow"></span><span class="bullet" aria-hidden="true"><span class="tr"></span><span class="bd" style="left:${pct(1.8)}%;width:${pct(2.8) - pct(1.8)}%"></span><span class="goal" style="left:${pct(3)}%"></span><span class="gl" style="left:${pct(3)}%">meta 3 s</span><span class="mk" style="left:${pct(med)}%"></span></span></div><p class="small muted">Mediana de hoy. Estimado del sistema: 1,8 a 2,8 s</p></div>
+      <div class="card tight kpi"><p class="lbl eyebrow">${ic('privacidad', 's16')}Fuera de la empresa</p><div class="val"><span class="num">0</span><span class="muted" style="margin-bottom:6px">audios</span><span class="grow"></span><span class="lockb">${ic('candado', 's16')}</span></div><p class="small muted">${S.privacy.transcripts ? 'Las transcripciones se guardan solo en el CORE.' : 'Las conversaciones no se guardan. La voz se procesa en el CORE.'}</p></div>
+    </div>
+  </div>
+  <section style="display:flex;flex-direction:column;gap:16px" aria-label="Ambientes">
+    <div class="sec-h"><h3>Ambientes</h3><span class="small faint">${rs.length} NODO · ${on} activos${mute.length ? ' · ' + mute.length + ' con micrófono cortado' : ''}${off.length ? ' · ' + off.length + ' desconectado' + (off.length > 1 ? 's' : '') : ''}</span><span class="grow"></span><a class="btn ghost" href="#ambientes">Ver ambientes</a></div>
+    <div class="ncards">${rs.map(r => `<button type="button" class="ncard" data-act="openRoom" data-arg="${r.id}" aria-label="${esc(r.name)}: ${esc(capOf(r))}. Ver detalle">${led(r.id)}<span class="t"><b>${esc(r.name)}</b>${ic('chev', 's16')}</span><span class="s">${badgeFor(r)}<span class="cap faint">${esc(detailOf(r))}</span></span></button>`).join('')}</div>
+  </section>
+  <div class="row3">
+    <section class="card" style="display:flex;flex-direction:column;gap:4px" aria-label="Próximas rutinas">
+      <div class="card-h" style="padding-bottom:12px"><h3 class="grow">Próximas rutinas</h3><a class="btn ghost" href="#rutinas">Ver rutinas</a></div>
+      <div class="list">${up.length ? up.map(({ r, t }) => `<div class="urow" style="border-top:1px solid var(--l1)"><span><span class="tm">${hhmm(t)}</span><span class="cap faint" style="display:block">${dayLabel(t)}</span></span><span style="min-width:0"><b style="display:block;font-weight:500">${esc(r.name)}</b><span class="small muted">${esc(cap(routineSentence(r)))}</span></span>${sw(r.on, 'toggleRoutine', r.id, 'Activar ' + r.name)}</div>`).join('') : `<p class="small muted" style="padding:14px 0">No hay rutinas programadas por horario.</p>`}</div>
+      ${hasLeave ? '' : `<div class="sug">${ic('chispa')}<span style="flex:1 1 200px;min-width:0"><b style="display:block;font-weight:500">¿Y cuando salís de la empresa?</b><span class="small muted">Creá una rutina que apague todo con «DOMI, cerrar oficina».</span></span>${btn('Nueva rutina', 'newRoutine', { icon: 'mas', arg: 'salgo' })}</div>`}
+    </section>
+    <section class="card" aria-label="Actividad de hoy">
+      <div class="card-h" style="padding-bottom:8px"><h3 class="grow">Actividad de hoy</h3><span class="mono cap faint">${S.activity.length} acciones</span></div>
+      <div class="list">${S.activity.length ? S.activity.slice(0, 6).map(evRow).join('') : `<p class="small muted" style="padding:14px 0">${S.privacy.log ? 'Todavía no hay actividad registrada.' : 'El registro de acciones está desactivado en Privacidad.'}</p>`}</div>
+      <p class="cap faint" style="display:flex;gap:8px;align-items:center;padding-top:14px;border-top:1px solid var(--l1)">${ic('candado', 's14')}Se registran acciones, no lo que dijiste. Las conversaciones no se guardan.</p>
+    </section>
+  </div></div>`;
+}
+function houseMap() {
+  const rs = S.rooms, n = rs.length, rows = Math.ceil(n / 2);
+  const cells = rs.map((r, i) => {
+    const rowI = Math.floor(i / 2), span = n % 2 === 1 && i === n - 1, right = !span && i % 2 === 1, bottom = rows > 1 && rowI > Math.max(0, Math.floor((rows - 2) / 2));
+    const st = status(r), L = LIGHT[lightOf(r)];
+    const kind = st === 'off' || st === 'boot' ? 'k-off' : st === 'mute' ? 'k-mute' : '';
+    const inner = st === 'off' || st === 'boot' ? ic('wifioff') : st === 'mute' ? ic('micoff') : ic('mic');
+    return `<button type="button" class="room${right ? ' r-right' : ''}${bottom ? ' r-bottom' : ''}${span ? ' span' : ''} st-${st}" data-act="openRoom" data-arg="${r.id}" aria-label="${esc(r.name)}: ${esc(capOf(r))}">
+      <span><span class="nm" style="display:block">${esc(r.name)}</span><span class="sc">${esc(capOf(r))}</span></span>
+      <span class="mk ${kind}" data-mk="${r.id}"><i style="--c:${L.mk}">${inner}</i></span></button>`;
+  }).join('');
+  const coreRoom = rs.find(r => r.core);
+  return `<div class="house-wrap"><div class="house" id="house"><span class="core-glow" style="${S.core.online ? '' : 'opacity:0'}"></span><svg class="links" id="links" aria-hidden="true"></svg>${cells}
+  <div class="core-node" id="coreNode"><span class="core-tag">DOMI CORE${coreRoom ? ' · ' + esc(coreRoom.name.toLowerCase()) : ''}</span><span class="core-box" style="--cc:${S.core.online ? 'var(--ok)' : 'var(--warn)'}"><svg class="sym" aria-hidden="true"><use href="#i-domi"></use></svg><span class="lb"></span><span class="key"></span></span></div></div>
+  <div class="inet"><span class="zero" title="Audios enviados fuera de la empresa">${ic('candado', 's14')}0 audios</span><span class="cloud">${ic('nubeoff', 's24')}</span><span class="cl"><span class="small muted" style="display:block">Internet</span><span class="cap faint">no recibe tu voz</span></span></div></div>`;
+}
+function drawLinks() {
+  const house = $('#house'), svg = $('#links'), core = $('#coreNode .core-box'); if (!house || !svg || !core) return;
+  let hb = house.getBoundingClientRect(); const rowsN = Math.ceil(S.rooms.length / 2), node = $('#coreNode'), glow = house.querySelector('.core-glow');
+  let top = '50%'; if (rowsN >= 2) { const cells = house.querySelectorAll('.room'), j = Math.max(0, Math.floor((rowsN - 2) / 2)), a = cells[j * 2], b = cells[(j + 1) * 2]; if (a && b) top = ((a.getBoundingClientRect().bottom + b.getBoundingClientRect().top) / 2 - hb.top) + 'px'; }
+  node.style.top = top; if (glow) glow.style.top = top; hb = house.getBoundingClientRect(); const cb = core.getBoundingClientRect();
+  const cx = cb.left + cb.width / 2 - hb.left, cy = cb.top + cb.height / 2 - hb.top;
+  svg.setAttribute('viewBox', `0 0 ${hb.width} ${hb.height}`);
+  let out = '';
+  for (const r of S.rooms) {
+    const mk = house.querySelector(`[data-mk="${r.id}"]`); if (!mk) continue;
+    const b = mk.getBoundingClientRect(); const x = b.left + b.width / 2 - hb.left, y = b.top + b.height / 2 - hb.top;
+    const st = status(r), l = lightOf(r); const d = `M ${x.toFixed(1)} ${y.toFixed(1)} L ${cx.toFixed(1)} ${cy.toFixed(1)}`;
+    const dRev = `M ${cx.toFixed(1)} ${cy.toFixed(1)} L ${x.toFixed(1)} ${y.toFixed(1)}`;
+    if (st === 'off' || st === 'boot') { out += `<path d="${d}" style="stroke:var(--warn)" stroke-width="1.5" stroke-dasharray="3 5" opacity=".8" fill="none"/>`; const mx = x + (cx - x) * 0.4, my = y + (cy - y) * 0.4; out += `<circle cx="${mx}" cy="${my}" r="9" style="fill:var(--s1)" stroke="rgba(245,184,61,.45)"/><path d="M ${mx - 3} ${my - 3} L ${mx + 3} ${my + 3} M ${mx + 3} ${my - 3} L ${mx - 3} ${my + 3}" style="stroke:var(--warn)" stroke-width="1.5" stroke-linecap="round"/>`; continue; }
+    if (st === 'mute' || !S.core.online) { out += `<path d="${d}" style="stroke:var(--fg3)" stroke-width="1.5" opacity=".55" fill="none"${!S.core.online ? ' stroke-dasharray="3 5"' : ''}/>`; continue; }
+    const col = LIGHT[l].mk; out += `<path d="${d}" style="stroke:${col}" stroke-width="1.5" opacity=".85" fill="none"/>`;
+    if (l === 'reposo') out += `<circle cx="${x + (cx - x) * 0.42}" cy="${y + (cy - y) * 0.42}" r="3.5" style="fill:${col};filter:drop-shadow(0 0 5px ${col})"/>`;
+    else if (!REDUCED) out += `<circle r="4" style="fill:${col};filter:drop-shadow(0 0 6px ${col})"><animateMotion dur="0.9s" repeatCount="indefinite" path="${l === 'escuchando' || l === 'pensando' ? d : dRev}"/></circle>`;
+  }
+  svg.innerHTML = out;
+}
+
+/* ---------- Ambientes */
+function vAmbientes() {
+  const rs = S.rooms; const cnt = s => rs.filter(r => status(r) === s).length;
+  return `${offlineBanner()}<div class="${!S.core.online ? 'dim' : ''}" style="display:flex;flex-direction:column;gap:32px">
+  ${head(`${rs.length} ambientes · ${rs.length} NODO · 1 CORE`, 'Ambientes', 'Cada ambiente tiene un NODO que escucha y habla. El CORE hace el resto, sin salir de la empresa.', btn('Agregar NODO', 'addNodo', { kind: 'primary', icon: 'mas' }))}
+  <div class="card summary">${[[cnt('on'), 'activos', 'var(--ok)'], [cnt('mute'), 'con micrófono cortado', 'var(--mute)'], [cnt('off') + cnt('boot'), cnt('off') + cnt('boot') === 1 ? 'desconectado' : 'desconectados', 'var(--warn)'], [`${rs.length} de ${rs.length}`, 'ambientes con NODO', 'var(--fg2)']].map(([n, l, c]) => `<div><span class="dot" style="--c:${c}"></span><span class="n">${n}</span><span class="small muted">${l}</span></div>`).join('')}</div>
+  <div class="rcards">${rs.map(r => `<button type="button" class="rcard" data-act="openRoom" data-arg="${r.id}" aria-label="${esc(r.name)}: ${esc(capOf(r))}. Ver detalle">
+    <span class="top">${led(r.id)}<span style="min-width:0"><span class="hd"><b>${esc(r.name)}</b>${badgeFor(r)}</span><span class="cap faint" style="display:block;margin-top:2px">NODO ${esc(r.nodo)} · ${esc(r.color)}${r.core ? ' · el CORE está acá' : ''}</span>
+    <span class="ln">${ic('reloj', 's16')}${esc(status(r) === 'off' ? 'Sin respuesta desde las ' + hhmm(r.lostAt || Date.now()) : status(r) === 'mute' ? 'Micrófono cortado desde la tapa · ' + hhmm(r.muteAt || Date.now()) : r.lastOrder ? 'Última orden ' + ago(r.lastOrder) : 'Sin órdenes todavía')}</span>
+    <span class="ln">${ic('volumen', 's16')}Volumen ${r.volume} % · luz ${r.brightness} %</span></span></span>
+    <span class="ft"><span>${r.equipos.length ? 'Responde a: ' + esc(r.equipos.join(' · ').toLowerCase()) : 'Todavía no responde a ningún equipo'}</span><span class="go">Ver detalle</span>${ic('chev', 's16')}</span></button>`).join('')}</div>
+  <div class="addcard"><span class="tile" style="width:48px;height:48px;border-radius:14px">${ic('nodo', 's24')}</span><span style="flex:1 1 260px;min-width:0"><h3>Sumá otro ambiente</h3><span class="small muted">Prepará un NODO con batería y asignalo a un ambiente en cuatro pasos. No hace falta otro CORE.</span></span>${btn('Agregar NODO', 'addNodo', { icon: 'mas' })}</div></div>`;
+}
+
+/* ---------- panel de detalle del ambiente */
+function vDrawer() {
+  const r = room(UI.drawer); if (!r) return '';
+  const st = status(r), l = lightOf(r), L = LIGHT[l], off = st === 'off' || st === 'boot';
+  const search = UI.search[r.id];
+  let hero = `${led(r.id, 'big')}<div style="display:flex;gap:12px;align-items:flex-start">${badgeFor(r)}<p class="small muted">${esc(st === 'boot' ? 'El NODO está arrancando y buscando el Wi-Fi de la empresa.' : L.desc)}</p></div>`;
+  if (st === 'off') {
+    hero = `<div class="note warn" style="flex-direction:column;gap:14px;padding:20px"><div style="display:flex;gap:12px;align-items:center">${ic('wifioff', 's24')}<div><h3 style="color:var(--warn)">No encontramos este NODO</h3><p class="small muted">Dejó de responder al CORE a las ${hhmm(r.lostAt || Date.now())}</p></div></div>
+    ${search === 'busy' ? `<div style="display:flex;gap:12px;align-items:center"><span class="spin"></span><span class="small">Buscando el NODO ${esc(r.de)}…</span></div>` : `<ol class="steps"><li><span class="n">1</span>Revisá que el NODO tenga carga. Si hace falta, cargalo por USB-C.</li><li><span class="n">2</span>Si la luz parpadea, está buscando el Wi-Fi: acercalo al router o al CORE.</li><li><span class="n">3</span>Reiniciá el NODO. Tus ajustes se conservan.</li></ol>
+    ${search === 'fail' ? `<p class="small" style="color:var(--warn)">Sigue sin aparecer. Probá los pasos de arriba y volvé a buscar.</p>` : ''}
+    <div>${btn('Buscar de nuevo', 'searchNodo', { icon: 'actualizar', arg: r.id, id: 'search-nodo' })}</div>`}</div>`;
+  }
+  const mic = off ? `<div class="microw" style="opacity:.6"><span class="tile">${ic('mic', 's16')}</span><span style="flex:1"><b>Micrófono: sin datos</b><span class="small muted">Se va a ver cuando el NODO vuelva a conectarse.</span></span></div>`
+    : r.mic ? `<div class="microw"><span class="tile">${ic('mic', 's16')}</span><span style="flex:1"><b>Micrófono encendido</b><span class="small muted">Se corta tocando la tapa del NODO. Ningún programa lo puede volver a encender: solo vos.</span></span>${ic('candado', 's16 faint')}</div>`
+      : `<div class="microw cut"><span class="tile">${ic('micoff', 's16')}</span><span style="flex:1"><b>Micrófono cortado por hardware</b><span class="small muted">Para volver a activarlo, tocá la tapa del NODO. Desde el panel no se puede, a propósito: el corte es físico.</span></span>${ic('candado', 's16 faint')}</div>`;
+  return `<div class="layer" role="dialog" aria-modal="true" aria-labelledby="dr-title"><div class="scrim" data-act="closeDrawer"></div><aside class="drawer">
+  <div class="drawer-b">
+    <div class="mhead"><div><p class="eyebrow"><span class="dot" style="--c:${off ? 'var(--warn)' : L.mk}"></span>Ambiente</p><h2 id="dr-title">${esc(r.name)}</h2><p class="cap faint">NODO ${esc(r.nodo)} · ${esc(r.color)}${r.core ? ' · el CORE está en este ambiente' : ''}</p></div><button type="button" class="icon-btn" data-act="closeDrawer" aria-label="Cerrar" id="dr-close">${ic('cerrar', 's16')}</button></div>
+    ${hero}
+    ${mic}
+    <div class="grp"><p class="eyebrow">Ajustes del NODO</p>
+      <div class="field"><label for="rg-vol" style="display:flex;gap:10px;align-items:center;color:var(--fg)">${ic('volumen', 's16')}<span style="flex:1">Volumen</span><span class="mono muted" id="v-vol">${r.volume} %</span></label><input type="range" id="rg-vol" min="0" max="100" step="5" value="${r.volume}" data-bind="volume" ${off ? 'disabled' : ''}></div>
+      <div class="field"><label for="rg-bri" style="display:flex;gap:10px;align-items:center;color:var(--fg)">${ic('brillo', 's16')}<span style="flex:1">Brillo de la luz</span><span class="mono muted" id="v-bri">${r.brightness} %</span></label><input type="range" id="rg-bri" min="10" max="100" step="5" value="${r.brightness}" data-bind="brightness" ${off ? 'disabled' : ''}></div>
+      <div class="trig"><div><b>No molestar de 23:30 a 07:00</b><small>Solo luz: DOMI no responde con voz</small></div>${sw(r.dnd, 'toggleDnd', r.id, 'No molestar', off)}</div>
+    </div>
+    <div class="grp"><p class="eyebrow">Este ambiente</p>
+      <div class="field"><label for="room-name">Nombre</label><input class="input${UI.nameErr ? ' bad' : ''}" id="room-name" value="${esc(r.name)}" maxlength="28" data-bind="roomName" aria-describedby="room-name-h"><span class="help${UI.nameErr ? ' bad' : ''}" id="room-name-h">${UI.nameErr ? ic('alerta', 's14') + esc(UI.nameErr) : 'Así lo vas a ver en el panel y en las rutinas. Se guarda al salir del campo.'}</span></div>
+      <div><div class="kv">${ic('luz', 's16')}<span class="k">Equipos que responden</span><span class="v">${esc(r.equipos.join(' · ') || 'Ninguno')}</span></div>
+      <div class="kv">${ic('wifi', 's16')}<span class="k">Señal Wi-Fi</span><span class="v">${off ? 'Sin señal' : (r.signal > -50 ? 'Excelente' : 'Buena') + ' · ' + String(r.signal).replace('-', '−') + ' dBm'}</span></div>
+      <div class="kv">${ic('reloj', 's16')}<span class="k">Última orden</span><span class="v">${r.lastOrder ? esc(ago(r.lastOrder)) : '—'}</span></div></div>
+    </div>
+    <div class="simbox"><p class="eyebrow">Simulador · lo que harías en el NODO</p><p class="small muted">Simulá el encendido del NODO o un toque en su tapa.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">${r.plugged ? btn(r.mic ? 'Tocar la tapa (cortar micrófono)' : 'Tocar la tapa (activar micrófono)', 'tapLid', { arg: r.id, sm: true, icon: r.mic ? 'micoff' : 'mic' }) : ''}${btn(r.plugged ? 'Apagar el NODO' : (st === 'boot' ? 'Arrancando…' : 'Encender el NODO'), 'plug', { arg: r.id, sm: true, icon: 'energia', disabled: st === 'boot' })}</div></div>
+  </div>
+  <div class="drawer-f">${btn('Quitar NODO', 'removeRoom', { kind: 'danger', arg: r.id, icon: 'eliminar' })}<span class="grow"></span>${btn('Listo', 'closeDrawer', { kind: 'primary' })}</div>
+  </aside></div>`;
+}
+
+/* ---------- modal: agregar NODO */
+function vAdd() {
+  const m = UI.modal; const step = m.step; const nodoId = 'N-' + String(S.seq.nodo).padStart(2, '0');
+  const bar = n => `<div class="stepbar" aria-label="Paso ${n} de 4">${['Preparar', 'Buscar', 'Ambiente', 'Probar'].map((s, i) => `<div class="${i + 1 < n ? 'done' : i + 1 === n ? 'done cur' : ''}">${i + 1} · ${s}</div>`).join('')}</div>`;
+  const stepN = { 1: 1, 2: 2, err: 2, 3: 3, 4: 4, 5: 4 }[step];
+  let title = '', sub = '', body = '', foot = '';
+  if (step === 1) { title = 'Prepará el NODO nuevo'; sub = 'Sirve para cualquier ambiente de la empresa. El CORE lo encuentra solo, por tu Wi-Fi.';
+    body = `<div class="card" style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:20px;align-items:center;background:var(--bg)">${ledState('reposo')}<ul class="steps" style="gap:12px"><li>${ic('energia', 's16')}Verificá que tenga carga. Si hace falta, cargalo por USB-C.</li><li>${ic('nodo', 's16')}Ubicalo en el centro del ambiente, lejos de la pared: escucha y suena en 360°.</li><li>${ic('brillo', 's16')}Esperá a que se encienda la luz. Ahí ya está listo.</li></ul></div>`;
+    foot = btn('Cancelar', 'closeModal', { kind: 'ghost' }) + '<span class="grow"></span>' + btn('El NODO está listo', 'addStep', { kind: 'primary', icon: 'check', arg: '2', id: 'add-next' }); }
+  if (step === 2) { title = 'Buscando el NODO…'; sub = 'El CORE revisa tu red Wi-Fi. No sale nada a internet.';
+    body = `<div class="empty" style="border-style:solid;border-color:var(--l1);background:var(--bg)"><span class="spin lg"></span><b>Buscando NODO nuevos en tu red</b><span class="cap faint">Suele tardar menos de diez segundos.</span></div>`;
+    foot = btn('Cancelar', 'closeModal', { kind: 'ghost' }) + '<span class="grow"></span>' + btn('¿No aparece?', 'addStep', { kind: 'ghost', icon: 'ayuda', arg: 'err', id: 'add-help' }); }
+  if (step === 'err') { title = 'No encontramos ningún NODO nuevo';
+    body = `<div class="note warn" style="flex-direction:column;gap:14px;padding:20px"><span style="display:flex;gap:10px;align-items:center;color:var(--warn);font-weight:500">${ic('alerta', 's16')}Revisemos tres cosas antes de volver a buscar</span><ol class="steps"><li><span class="n">1</span>Si la luz del NODO no enciende, comprobá la carga de la batería.</li><li><span class="n">2</span>El NODO y el CORE tienen que estar en el mismo Wi-Fi de la empresa.</li><li><span class="n">3</span>Para esta primera vez, acercá el NODO al router o al CORE.</li></ol></div>`;
+    foot = btn('Cancelar', 'closeModal', { kind: 'ghost' }) + '<span class="grow"></span>' + btn('Buscar de nuevo', 'addStep', { kind: 'primary', icon: 'actualizar', arg: '2', id: 'add-retry' }); }
+  if (step === 3) { title = 'Encontramos tu NODO'; sub = '¿En qué ambiente lo vas a usar? Cada ambiente tiene un solo NODO.';
+    const colors = [['grafito', '#1d1e22'], ['blanco', '#e7e7e3'], ['gris claro', '#b9bcc2'], ['beige', '#c9bda6']];
+    body = `<div class="found"><span class="tile" style="width:40px;height:40px;border-radius:12px;color:var(--ok)">${ic('nodo')}</span><span style="flex:1;min-width:0"><b style="display:block;font-weight:500">DOMI NODO ${nodoId}</b><span class="cap muted">Señal Wi-Fi buena · encontrado por el CORE</span></span><span class="badge b-ok"><i></i>Nuevo</span></div>
+    <div class="field"><span class="flabel">Color del NODO</span><div class="swatches" role="radiogroup" aria-label="Color del NODO">${colors.map(([n, h]) => `<button type="button" class="sw" role="radio" aria-checked="${m.color === n}" data-act="addColor" data-arg="${n}"><i style="background:${h}"></i>${cap(n)}</button>`).join('')}</div></div>
+    <div class="field"><span class="flabel">Elegí el ambiente</span><div class="opts" role="radiogroup" aria-label="Ambiente">${S.rooms.map(r => `<button type="button" class="opt" disabled role="radio" aria-checked="false"><span class="tile">${ic('ambientes', 's16')}</span><span class="txt"><b>${esc(r.name)}</b><small>Ya tiene NODO</small></span><span class="radio"></span></button>`).join('')}
+      <button type="button" class="opt full" role="radio" aria-checked="${m.choice === 'new'}" data-act="addChoice" data-arg="new" id="opt-new"><span class="tile" style="color:${m.choice === 'new' ? 'var(--ok)' : 'var(--fg2)'}">${ic('mas', 's16')}</span><span class="txt"><b>Nuevo ambiente</b><small>${m.choice === 'new' && m.name ? esc(m.name) : 'Escribí el nombre del ambiente'}</small></span><span class="radio"></span></button></div></div>
+    ${m.choice === 'new' ? `<div class="field"><label for="new-room">Nombre del ambiente</label><input class="input${m.err ? ' bad' : ''}" id="new-room" value="${esc(m.name)}" placeholder="Ej.: Estudio" maxlength="28" data-bind="newRoom" aria-describedby="new-room-h"><span class="help${m.err ? ' bad' : ''}" id="new-room-h">${m.err ? ic('alerta', 's14') + esc(m.err) : 'Así lo vas a ver en el panel y en las rutinas.'}</span></div>` : ''}`;
+    foot = btn('Cancelar', 'closeModal', { kind: 'ghost' }) + '<span class="grow"></span>' + btn('Continuar', 'addContinue', { kind: 'primary', icon: 'chev', disabled: m.choice !== 'new', id: 'add-continue' }); }
+  if (step === 4) { title = `Probá el NODO ${esc(deOf(m.name))}`; sub = 'Decí «DOMI» cerca del NODO. Cuando te escuche, la franja de arriba se enciende en verde.';
+    body = `${ledState('modal', 'big')}<div style="display:flex;gap:10px;align-items:center;justify-content:center"><span class="spin"></span><span class="mono small muted">Esperando tu voz…</span></div>`;
+    foot = btn('Saltar la prueba', 'addStep', { kind: 'ghost', arg: '5' }) + '<span class="grow"></span>' + btn('Simular que digo «DOMI»', 'addHeard', { icon: 'mic', id: 'add-heard' }); }
+  if (step === 5) { title = `${cap(deOf(m.name).replace(/^de(l| la) /, m2 => m2.trim() === 'del' ? 'el ' : 'la '))} ya tiene su NODO`;
+    body = `${ledState('escuchando', 'big')}<div class="note ok">${ic('check', 's16')}<span><b style="display:block;color:var(--ok);font-weight:500">${m.heard ? 'Te escuchó' : 'Listo para usar'}</b><span class="muted">${m.heard ? 'Reconoció «DOMI» en el propio NODO en 0,2 s. Hasta ese momento no envió nada al CORE.' : 'Podés probarlo cuando quieras diciendo «DOMI».'}</span></span></div>
+    <div><div class="kv">${ic('ambientes', 's16')}<span class="k">Ambiente</span><span class="v">${esc(m.name)}</span></div><div class="kv">${ic('nodo', 's16')}<span class="k">NODO</span><span class="v">${nodoId} · ${esc(m.color)}</span></div><div class="kv">${ic('mic', 's16')}<span class="k">Micrófono</span><span class="v">Encendido</span></div><div class="kv">${ic('volumen', 's16')}<span class="k">Volumen y luz</span><span class="v">60 % · 70 %</span></div></div>`;
+    foot = '<span class="grow"></span>' + btn('Terminar', 'addFinish', { kind: 'primary', icon: 'check', id: 'add-finish' }); }
+  return `<div class="layer" role="dialog" aria-modal="true" aria-labelledby="m-title"><div class="scrim" data-act="closeModal"></div><div class="modal-w">
+  <div class="mhead"><div><p class="eyebrow"><span class="dot"></span>Agregar NODO · paso ${stepN} de 4</p></div><button type="button" class="icon-btn" data-act="closeModal" aria-label="Cerrar" id="m-close">${ic('cerrar', 's16')}</button></div>
+  ${bar(stepN)}<div style="display:flex;flex-direction:column;gap:8px"><h2 id="m-title">${title}</h2>${sub ? `<p class="muted">${sub}</p>` : ''}</div>${body}<div class="mfoot">${foot}</div></div></div>`;
+}
+
+/* ---------- confirmación */
+function vConfirm() {
+  const c = UI.confirm;
+  return `<div class="layer" role="alertdialog" aria-modal="true" aria-labelledby="c-title"><div class="scrim" data-act="cancelConfirm"></div><div class="modal-w narrow">
+  <div style="display:flex;flex-direction:column;gap:8px"><h2 id="c-title">${esc(c.title)}</h2><p class="muted">${esc(c.text)}</p></div>
+  <div class="mfoot"><span class="grow"></span>${btn('Cancelar', 'cancelConfirm', { kind: 'ghost', id: 'c-cancel' })}${btn(c.ok, 'okConfirm', { kind: c.danger ? 'danger' : 'primary', id: 'c-ok' })}</div></div></div>`;
+}
+function ask(title, text, ok, fn, danger = true) { UI.confirm = { title, text, ok, fn, danger, from: document.activeElement }; render(); setTimeout(() => { const b = $('#c-cancel'); if (b) b.focus(); }, 30); }
+
+/* ---------- Rutinas */
+function vRutinas() {
+  if (UI.editor) return vEditor();
+  const act = S.routines.filter(r => r.on).length;
+  return `${offlineBanner()}<div class="${!S.core.online ? 'dim' : ''}" style="display:flex;flex-direction:column;gap:32px">
+  ${head(`${S.routines.length} rutinas · ${act} activas`, 'Rutinas', 'Lo que la empresa hace sola, cuando se lo pedís o a una hora. Se arman sin escribir código.', btn('Nueva rutina', 'newRoutine', { kind: 'primary', icon: 'mas' }))}
+  <div class="card" style="padding:8px;display:flex;flex-direction:column;gap:2px">${S.routines.length ? S.routines.map(r => { const [p, s] = triggerText(r); return `<div class="rrow${UI.fresh === r.id ? ' fresh' : ''}"><button type="button" class="rmain${r.on ? '' : ' paused'}" data-act="editRoutine" data-arg="${r.id}"><span class="tile">${ic(r.icon || 'rutinas')}</span><span style="min-width:0"><b>${esc(r.name)}</b><span class="d">${esc(cap(routineSentence(r)))}</span></span><span class="tr">${esc(p || (s ? 'A una hora' : 'Sin disparador'))}<small>${esc(r.on ? (s || 'Solo por voz') : 'Pausada')}</small></span></button>${sw(r.on, 'toggleRoutine', r.id, 'Activar ' + r.name)}</div>`; }).join('') : `<div class="empty" style="margin:16px">${ic('chispa', 's24')}<b>Todavía no hay rutinas</b><span class="small muted">Creá la primera: por ejemplo, que la oficina se apague sola cuando decís «DOMI, cerrar oficina».</span>${btn('Nueva rutina', 'newRoutine', { kind: 'primary', icon: 'mas' })}</div>`}</div>
+  <div class="grid2"><div class="card tight" style="display:flex;flex-direction:column;gap:10px"><h3 style="display:flex;gap:10px;align-items:center">${ic('energia', 's16')}Ruta rápida en el CORE</h3><p class="small muted">Las órdenes de la empresa no pasan por el modelo de lenguaje: el CORE las reconoce por frases y responde en milisegundos, sin inventar.</p></div>
+  <div class="card tight" style="display:flex;flex-direction:column;gap:10px"><h3 style="display:flex;gap:10px;align-items:center">${ic('nubeoff', 's16')}Funcionan sin internet</h3><p class="small muted">Las rutinas viven en el CORE, dentro de tu empresa. Si se corta la conexión, siguen funcionando igual.</p></div></div></div>`;
+}
+const ACTION_TYPES = [['luces', 'Luces', 'Encender o apagar', 'luz'], ['clima', 'Aire acondicionado', 'Apagar o fijar temperatura', 'termo'], ['luzNodo', 'Luz de los NODO', 'Subir o bajar el brillo', 'brillo'], ['anunciar', 'Anunciar por voz', 'Un mensaje en uno o todos los NODO', 'anunciar']];
+function vEditor() {
+  const E = UI.editor, d = E.draft, er = E.errors || {};
+  const lightRooms = S.rooms.filter(r => r.luz), airRooms = S.rooms.filter(r => r.aire);
+  const tchips = (a, i, list, allKey, allLabel) => `<div class="chips">${allKey ? `<button type="button" class="chip" aria-pressed="${a.target.includes(allKey)}" data-act="actTarget" data-arg="${i}|${allKey}">${allLabel}</button>` : ''}${list.map(r => `<button type="button" class="chip" aria-pressed="${a.target.includes(r.id)}" data-act="actTarget" data-arg="${i}|${r.id}">${esc(r.name)}</button>`).join('')}</div>`;
+  const actRow = (a, i) => {
+    const T = ACTION_TYPES.find(t => t[0] === a.type); const bad = er['a' + i];
+    let ctl = '';
+    if (a.type === 'luces') ctl = `<div class="seg" role="group" aria-label="Qué hacer"><button type="button" aria-pressed="${a.mode === 'apagar'}" data-act="actMode" data-arg="${i}|apagar">Apagar</button><button type="button" aria-pressed="${a.mode === 'encender'}" data-act="actMode" data-arg="${i}|encender">Encender</button></div>${tchips(a, i, lightRooms, 'todas', 'Toda la empresa')}`;
+    if (a.type === 'clima') ctl = `<div class="ctl"><div class="seg" role="group" aria-label="Qué hacer"><button type="button" aria-pressed="${a.mode === 'apagar'}" data-act="actMode" data-arg="${i}|apagar">Apagar</button><button type="button" aria-pressed="${a.mode === 'temperatura'}" data-act="actMode" data-arg="${i}|temperatura">Poner en</button></div>${a.mode === 'temperatura' ? `<span class="stepper"><button type="button" data-act="actTemp" data-arg="${i}|-1" aria-label="Bajar temperatura">−</button><span class="mono">${a.temp} °C</span><button type="button" data-act="actTemp" data-arg="${i}|1" aria-label="Subir temperatura">+</button></span>` : ''}</div>${airRooms.length ? tchips(a, i, airRooms) : '<p class="small muted">Ningún ambiente tiene aire acondicionado vinculado.</p>'}`;
+    if (a.type === 'luzNodo') ctl = `<div class="field"><label for="act-${i}-v" style="display:flex"><span style="flex:1">Brillo</span><span class="mono" id="act-${i}-vl">${a.value} %</span></label><input type="range" id="act-${i}-v" min="10" max="100" step="10" value="${a.value}" data-bind="actValue" data-i="${i}"></div>`;
+    if (a.type === 'anunciar') ctl = `<div class="field"><label for="act-${i}-t">Mensaje</label><input class="input${bad && !a.text.trim() ? ' bad' : ''}" id="act-${i}-t" value="${esc(a.text)}" maxlength="80" placeholder="Ej.: El receso terminó" data-bind="actText" data-i="${i}"></div><div class="chips"><button type="button" class="chip" aria-pressed="${a.target === 'todos'}" data-act="actTarget" data-arg="${i}|todos">Todos los NODO</button>${S.rooms.map(r => `<button type="button" class="chip" aria-pressed="${a.target === r.id}" data-act="actTarget" data-arg="${i}|${r.id}">${esc(r.name)}</button>`).join('')}</div>`;
+    return `<div class="action${bad ? ' bad' : ''}"><div class="ah"><span class="num">${i + 1}</span>${ic(T[3], 's16')}<b>${T[1]}</b><span class="badge b-neutral"><i></i>Ruta rápida</span><button type="button" class="icon-btn" data-act="actDel" data-arg="${i}" aria-label="Quitar la acción ${i + 1}">${ic('eliminar', 's16')}</button></div>${ctl}${bad ? `<span class="help bad">${ic('alerta', 's14')}${esc(bad)}</span>` : ''}</div>`;
+  };
+  const sugg = E.isNew && !d.actions.length;
+  return `<div style="display:flex;flex-direction:column;gap:32px">
+  <header class="phead"><div class="phead-t"><div style="display:flex;gap:12px;align-items:center">${'<button type="button" class="icon-btn" data-act="closeEditor" aria-label="Volver a Rutinas" id="ed-back">' + ic('chevl', 's16') + '</button>'}<p class="eyebrow"><span class="dot"></span>Rutinas · ${E.isNew ? 'nueva' : 'editar'}</p></div><h1 id="ed-title">${esc(d.name.trim() || 'Nueva rutina')}</h1><p class="lead">Elegí cuándo se activa y qué hace. Los cambios llegan a todos los NODO.</p></div>
+  <div class="phead-a">${btn('Cancelar', 'closeEditor', { kind: 'ghost' })}${btn(E.isNew ? 'Guardar rutina' : 'Guardar cambios', 'saveRoutine', { kind: 'primary', icon: 'check', id: 'ed-save' })}</div></header>
+  ${Object.keys(er).length ? `<div class="note err" role="alert">${ic('alerta', 's16')}<span>Revisá lo marcado: ${esc(Object.values(er)[0])}</span></div>` : ''}
+  <div class="ed"><div class="ed-l">
+    <section class="card" style="display:flex;flex-direction:column;gap:14px"><h3>Nombre</h3><div class="field"><label for="r-name">Nombre de la rutina</label><input class="input${er.name ? ' bad' : ''}" id="r-name" value="${esc(d.name)}" placeholder="Ej.: Cierre de oficina" maxlength="40" data-bind="rName"><span class="help${er.name ? ' bad' : ''}">${er.name ? ic('alerta', 's14') + esc(er.name) : 'Así la vas a ver en el panel y en Inicio.'}</span></div></section>
+    <section class="card" style="display:flex;flex-direction:column;gap:18px"><h3>Cuándo se activa</h3>
+      <div class="trig"><div><b>Cuando digo una frase</b><small>DOMI la reconoce desde cualquier NODO de la empresa.</small></div>${sw(d.phrase.on, 'rPhraseOn', null, 'Activar por frase')}</div>
+      ${d.phrase.on ? `<div class="field"><label for="r-phrase">Frase</label><input class="input${er.phrase ? ' bad' : ''}" id="r-phrase" value="${esc(d.phrase.text)}" placeholder="DOMI, …" maxlength="60" data-bind="rPhrase"><span class="help${er.phrase ? ' bad' : ''}">${er.phrase ? ic('alerta', 's14') + esc(er.phrase) : 'Empezá siempre con «DOMI».'}</span></div>` : ''}
+      <hr class="divider">
+      <div class="trig"><div><b>A una hora</b><small>Se activa sola, aunque nadie hable.</small></div>${sw(d.schedule.on, 'rSchedOn', null, 'Activar por horario')}</div>
+      ${d.schedule.on ? `<div class="sched"><div class="field"><label for="r-time">Hora</label><input class="input" type="time" id="r-time" value="${esc(d.schedule.time)}" data-bind="rTime"></div><div class="field"><span class="flabel">Días</span><div class="days">${DAYS.map((x, i) => `<button type="button" class="chip" aria-pressed="${d.schedule.days.includes(i)}" data-act="rDay" data-arg="${i}">${x}</button>`).join('')}</div></div></div>` : ''}
+      ${er.trigger ? `<span class="help bad">${ic('alerta', 's14')}${esc(er.trigger)}</span>` : ''}
+    </section>
+    <section class="card" style="display:flex;flex-direction:column;gap:14px"><div class="card-h"><h3 class="grow">Qué hace</h3>${d.actions.length ? `<span class="mono cap faint">${d.actions.length} ${d.actions.length === 1 ? 'acción' : 'acciones'}</span>` : ''}</div>
+      ${d.actions.length ? d.actions.map(actRow).join('') : `<div class="empty"><span class="lockb">${ic('chispa', 's16')}</span><b>Todavía no hace nada</b><span class="small muted">${sugg ? 'Usá la sugerencia o sumá una acción.' : 'Sumá al menos una acción.'}</span></div>`}
+      ${er.actions ? `<span class="help bad">${ic('alerta', 's14')}${esc(er.actions)}</span>` : ''}
+      ${E.menu ? `<div class="menu" role="menu">${ACTION_TYPES.map(([k, l, s, i]) => `<button type="button" role="menuitem" data-act="actAdd" data-arg="${k}">${ic(i)}<span><b style="display:block;font-weight:500">${l}</b><small>${s}</small></span></button>`).join('')}</div>` : `<div>${btn('Agregar acción', 'actMenu', { icon: 'mas', id: 'act-menu' })}</div>`}
+    </section>
+  </div><div class="ed-r">
+    ${sugg ? `<section class="card" style="display:flex;flex-direction:column;gap:14px;border-color:var(--t-ok2)"><p class="eyebrow"><span class="dot"></span>Sugerida para vos</p><h3>Salida de la empresa</h3><p class="small muted">Apaga todas las luces y el aire cuando cerrás la oficina. La armamos con los equipos que ya responden en tu empresa.</p><div class="small" style="display:flex;flex-direction:column;gap:8px"><span style="display:flex;gap:10px">${ic('luz', 's16')}Apagar todas las luces</span><span style="display:flex;gap:10px">${ic('termo', 's16')}Apagar el aire acondicionado</span></div><div>${btn('Usar sugerencia', 'useSuggestion', { icon: 'chispa' })}</div></section>` : ''}
+    <section class="card" style="display:flex;flex-direction:column;gap:12px"><p class="eyebrow"><span class="dot"></span>Así va a funcionar</p><p id="r-summary">${esc(summaryOf(d))}</p>
+      ${!E.isNew ? `<hr class="divider"><div><div class="kv">${ic('reloj', 's16')}<span class="k">Última vez</span><span class="v">${d.lastRun ? esc(ago(d.lastRun)) : 'Nunca'}</span></div></div><div style="display:flex;gap:10px;flex-wrap:wrap">${btn('Probar ahora', 'runRoutine', { icon: 'play', arg: d.id, sm: true })}${btn('Eliminar', 'deleteRoutine', { kind: 'danger', icon: 'eliminar', arg: d.id, sm: true })}</div>` : ''}</section>
+    <section class="card tight" style="display:flex;flex-direction:column;gap:8px"><h3 style="display:flex;gap:10px;align-items:center;font-size:15px">${ic('energia', 's16')}Responde en milisegundos</h3><p class="small muted">Estas órdenes se reconocen por frases en el CORE, sin pasar por el modelo de lenguaje. Por eso son rápidas y no inventan.</p></section>
+  </div></div></div>`;
+}
+function summaryOf(d) {
+  const when = [];
+  if (d.schedule.on && d.schedule.days.length) when.push((d.schedule.days.length === 7 ? 'Todos los días' : cap(daysText(d.schedule.days))) + ' a las ' + d.schedule.time);
+  if (d.phrase.on && d.phrase.text.trim()) when.push((when.length ? 'o cuando digas' : 'Cuando digas') + ' «' + d.phrase.text.trim() + '»');
+  const what = d.actions.length ? routineSentence(d) : 'todavía no hace nada';
+  if (!when.length) return 'Elegí una frase o un horario. Después, DOMI ' + what + '.';
+  return when.join(', ') + ', DOMI ' + what + '.';
+}
+
+/* ---------- Privacidad */
+const PIPE = [['NODO', 'Despierta', 'Reconoce «DOMI» en el propio NODO. Hasta ese momento no envía nada.', '≈ 0,2 s', 'var(--ok)'], ['Red de la empresa', 'Envía la frase', 'Solo esa frase viaja al CORE por tu Wi-Fi.', '≈ 0,4 s', 'var(--voz)'], ['CORE', 'Escucha', 'Pasa tu voz a texto, en español.', '≈ 0,8 a 1,2 s', 'var(--think)'], ['CORE', 'Entiende', 'Las órdenes de la empresa van por la ruta rápida; las preguntas abiertas, al modelo de lenguaje.', '0,05 s · 0,6 s', 'var(--resp)'], ['CORE', 'Contesta', 'Genera la voz y empieza a hablar con la primera frase.', '≈ 0,3 s', 'var(--think)'], ['NODO', 'Habla', 'La respuesta vuelve al NODO del ambiente donde hablaste.', 'Total ≈ 1,8 a 2,8 s', 'var(--ok)']];
+function vPrivacidad() {
+  const P = S.privacy;
+  return `${offlineBanner()}<div class="${!S.core.online ? 'dim' : ''}" style="display:flex;flex-direction:column;gap:32px">
+  ${head('Privacidad por diseño', 'Lo que se dice en la empresa, se queda en la empresa.', 'DOMI entiende tu voz en el CORE, adentro de tu empresa. No existe un camino para que el audio salga a internet.', btn('Probar una orden', 'openSim', { icon: 'frase' }) + '<a class="btn secondary" href="#sistema">' + ic('sistema') + 'Ver el CORE</a>')}
+  <section class="card" style="display:flex;flex-direction:column;gap:16px" aria-label="El viaje de una orden">
+    <div class="card-h"><div class="grow" style="display:flex;flex-direction:column;gap:6px"><p class="eyebrow"><span class="dot"></span>El viaje de una orden</p><h3>Le hablás, te responde. Todo sin salir de tu red.</h3></div><span class="badge b-ok"><i></i>Total estimado: 1,8 a 2,8 s</span></div>
+    <div class="pipe"><div class="pipe-h">${ic('candado', 's14')}<span class="eyebrow" style="color:var(--ok)">Todo pasa dentro de tu red Wi-Fi</span>${UI.pipe >= 0 ? `<span class="live-step" style="margin-left:auto"><span class="spin" style="width:12px;height:12px;border-width:2px"></span>En curso</span>` : ''}</div>
+    <div class="pipe-s">${PIPE.map(([w, t, d, tm, c], i) => `<div class="${UI.pipe === i ? 'now' : ''}"><span class="w"><span class="dot" style="--c:${c}"></span><span class="eyebrow" style="color:var(--fg3)">${w}</span></span><b style="font-weight:500">${i + 1}. ${t}</b><span class="small muted">${d}</span><span class="tm mono small">${tm}</span></div>`).join('')}</div></div>
+    <p class="cap faint" style="display:flex;gap:8px;align-items:center">${ic('nubeoff', 's14')}Internet no interviene en ningún paso. Tiempos estimados en el diseño del CORE con Ryzen 5 PRO; se confirmarán con el prototipo físico.</p>
+  </section>
+  <div class="gs gs-440 stretch">
+    <section class="card" style="display:flex;flex-direction:column;gap:14px"><div><h3>Micrófonos de la empresa</h3><p class="small muted">Cada NODO corta sus micrófonos por hardware. El panel solo puede leer ese estado.</p></div>
+      <div class="list">${S.rooms.map(r => { const st = status(r); return `<div class="kv" style="padding:10px 0">${ic(st === 'off' || st === 'boot' ? 'wifioff' : st === 'mute' ? 'micoff' : 'mic', 's16')}<span class="k" style="color:var(--fg);font-weight:500">${esc(r.name)}</span>${st === 'off' ? '<span class="badge b-warn"><i></i>Sin datos</span>' : st === 'mute' ? `<span class="badge b-mute"><i></i>Cortado · ${hhmm(r.muteAt || Date.now())}</span>` : st === 'boot' ? '<span class="badge b-think"><i></i>Conectando…</span>' : '<span class="badge b-ok"><i></i>Encendido</span>'}</div>`; }).join('')}</div>
+      <ol class="chain"><li>Tocás la tapa del NODO: toda la tapa es el botón.</li><li>Un circuito guarda el estado, aunque el NODO se reinicie.</li><li>Se corta la energía de los dos micrófonos.</li><li>La misma señal enciende el ícono rojo. Ningún programa lo puede volver a encender.</li></ol>
+    </section>
+    <section class="card" style="display:flex;flex-direction:column;gap:4px"><h3>Qué se guarda</h3>
+      <div class="list">
+        <div class="setrow"><span class="tile">${ic('mic', 's16')}</span><div><b>Grabaciones de voz</b><small>Nunca se guardan.</small></div>${ic('candado', 's16 faint')}</div>
+        <div class="setrow" style="flex-wrap:wrap"><span class="tile">${ic('frase', 's16')}</span><div><b>Transcripciones de lo que decís</b><small>${P.transcripts ? 'Activado: se guardan solo en el CORE, 7 días.' : 'Desactivado. Es lo recomendado.'}</small></div>${sw(P.transcripts, 'privTranscripts', null, 'Guardar transcripciones')}
+          ${UI.privConfirm === 'transcripts' ? `<div class="inline-confirm" style="flex-basis:100%"><p class="small">Si lo activás, el texto de lo que digas se guarda en el CORE durante 7 días para que puedas revisarlo. Nunca sale de tu empresa. ¿Querés activarlo?</p><div style="display:flex;gap:10px;justify-content:flex-end">${btn('Cancelar', 'privCancel', { kind: 'ghost', sm: true })}${btn('Activar', 'privTranscriptsOk', { kind: 'primary', sm: true, id: 'priv-ok' })}</div></div>` : ''}</div>
+        <div class="setrow" style="flex-wrap:wrap"><span class="tile">${ic('actividad', 's16')}</span><div><b>Registro de acciones</b><small>Qué se encendió o apagó, sin lo que dijiste.</small></div>${sw(P.log, 'privLog', null, 'Registro de acciones')}
+          ${P.log ? `<div style="flex-basis:100%;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-left:48px"><span class="small muted">Conservar</span><div class="seg" role="group" aria-label="Cuánto tiempo conservar">${[1, 7, 30].map(d => `<button type="button" aria-pressed="${P.retention === d}" data-act="privRet" data-arg="${d}">${d} ${d === 1 ? 'día' : 'días'}</button>`).join('')}</div>${btn('Borrar registro', 'privClear', { kind: 'ghost', sm: true, icon: 'eliminar' })}</div>` : ''}</div>
+        <div class="setrow"><span class="tile">${ic('nubeoff', 's16')}</span><div><b>Funcionar sin internet</b><small>Siempre: la voz no usa la conexión.</small></div>${ic('candado', 's16 faint')}</div>
+      </div>
+      <div class="note" style="background:var(--s2);border:1px solid var(--l1);margin-top:auto">${ic('wifi', 's16')}<span style="flex:1">Internet de la empresa: conectado</span><span class="badge b-neutral"><i></i>La voz no lo usa</span></div>
+    </section></div></div>`;
+}
+
+/* ---------- Sistema */
+const HOURS = [null, null, null, null, null, null, 2.3, 2.2, 2.0, 1.9, 2.1, 2.0, 2.2, 2.4, 2.1, 1.9, 2.0, 2.1, 2.2, 2.0, 2.3, 2.1, 1.9, 2.0];
+function chartSVG() {
+  const W = 640, H = 220, X0 = 40, Y0 = 190, TOP = 16, nowH = new Date().getHours();
+  const y = v => Y0 - v * (Y0 - TOP) / 3.5, slot = (W - X0) / 24;
+  const extraNow = S.stats.extra.filter(e => new Date(e.t).getHours() === nowH).map(e => e.s);
+  let o = '';
+  for (const v of [0, 1, 2, 3]) o += `<line x1="${X0}" x2="${W}" y1="${y(v)}" y2="${y(v)}" style="stroke:var(--l1)"/><text x="0" y="${y(v) + 4}">${v ? v + ' s' : '0'}</text>`;
+  o += `<rect x="${X0}" y="${y(2.8)}" width="${W - X0}" height="${y(1.8) - y(2.8)}" style="fill:var(--t-ok)"/>`;
+  o += `<line x1="${X0}" x2="${W}" y1="${y(3)}" y2="${y(3)}" style="stroke:var(--fg2)" stroke-dasharray="4 4" stroke-width="1.5"/><text x="${W - 4}" y="${y(3) - 6}" text-anchor="end">meta 3 s</text>`;
+  for (let h = 0; h < 24; h++) {
+    const cx = X0 + slot * h + slot / 2; let v = HOURS[h];
+    if (h === nowH && extraNow.length) v = median((v ? [v, v, v] : []).concat(extraNow));
+    if (h > nowH) o += `<rect x="${cx - 6}" y="${Y0 - 3}" width="12" height="3" rx="1.5" style="fill:var(--l2)"/>`;
+    else if (v) o += `<rect x="${cx - 6}" y="${y(v)}" width="12" height="${Y0 - y(v)}" rx="3" style="fill:var(--ok)" opacity="${h === nowH ? 1 : .45}"><title>${String(h).padStart(2, '0')} h · ${v.toFixed(1).replace('.', ',')} s</title></rect>${h === nowH ? `<text class="now-l" x="${cx}" y="${y(v) - 8}" text-anchor="middle">${v.toFixed(1).replace('.', ',')} s · ahora</text>` : ''}`;
+    if (h % 6 === 0 || h === 23) o += `<text x="${cx}" y="${Y0 + 20}" text-anchor="middle">${String(h).padStart(2, '0')}</text>`;
+  }
+  if (nowH >= 3) o += `<text x="${X0 + slot * 3}" y="${Y0 - 10}" text-anchor="middle">sin pedidos de noche</text>`;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Mediana del tiempo de respuesta por hora, hoy. Ahora: ${medianToday().toFixed(1).replace('.', ',')} segundos. Meta: 3 segundos.">${o}</svg>`;
+}
+function vSistema() {
+  const on = S.core.online && UI.coreBusy !== 'reboot';
+  const days = Math.max(0, Math.floor((Date.now() - S.core.upSince) / 86400000));
+  const MEM = [['Sistema', 1.0, 'var(--fg3)'], ['Voz a texto', 0.7, 'var(--voz)'], ['Preguntas abiertas', 1.2, 'var(--resp)'], ['Órdenes de la empresa', 0.1, 'var(--ok)'], ['Voz de DOMI', 0.1, 'var(--think)'], ['Libre', 4.9, 'var(--l3)']];
+  const PARTS = [['Despierta', 'NODO', 0.2, 'var(--ok)'], ['Envía la frase', 'Wi-Fi de la empresa', 0.4, 'var(--voz)'], ['Escucha', 'CORE', 1.0, 'var(--think)'], ['Entiende', 'CORE · ruta rápida', 0.05, 'var(--resp)'], ['Contesta', 'CORE', 0.3, 'var(--fg2)']];
+  return `${offlineBanner()}<div style="display:flex;flex-direction:column;gap:32px">
+  ${head('DOMI CORE · sala técnica', 'El cerebro de la empresa', 'Funciona las 24 horas dentro de tu red. Así está hoy.', btn('Reiniciar el CORE', 'rebootCore', { icon: 'actualizar', disabled: !on }) + '<a class="btn secondary" href="#privacidad">' + ic('privacidad') + 'Ver privacidad</a>')}
+  <div class="grid2">
+    <section class="card" style="display:flex;flex-direction:column;gap:16px"><div class="card-h"><h3 class="grow">Estado</h3>${on ? `<span class="badge b-ok"><i></i>En línea · ${days} días</span>` : UI.coreBusy === 'reboot' ? '<span class="badge b-think"><i></i>Reiniciando</span>' : '<span class="badge b-warn"><i></i>Sin conexión</span>'}</div>
+      <div class="core-front" style="--cc:${on ? 'var(--ok)' : 'var(--warn)'};--cg:${on ? 'rgba(52,224,122,.18)' : 'rgba(245,184,61,.12)'}"><span class="glow"></span><span class="box"><span class="edge"></span><span class="lbar"></span><span class="key"></span></span></div>
+      <div><div class="kv">${ic('wifi', 's16')}<span class="k">Wi-Fi 6</span><span class="v">${on ? 'Señal excelente · −41 dBm' : '—'}</span></div><div class="kv">${ic('termo', 's16')}<span class="k">Temperatura</span><span class="v" data-temp>${on ? UI.temp + ' °C' : '—'}</span></div><div class="kv">${ic('vent', 's16')}<span class="k">Ventilador de 30 mm</span><span class="v" data-fan>${on ? UI.fan + ' % · silencioso' : '—'}</span></div><div class="kv">${ic('energia', 's16')}<span class="k">Consumo</span><span class="v" data-watt>${on ? UI.watt.toFixed(1).replace('.', ',') + ' W ahora · 4,1 W promedio' : '—'}</span></div></div>
+    </section>
+    <section class="card" style="display:flex;flex-direction:column;gap:16px"><h3>Memoria y almacenamiento</h3>
+      <div style="display:flex;align-items:flex-end;gap:8px"><span class="bignum">3,1</span><span class="muted" style="margin-bottom:6px">de 8 GB en uso</span></div>
+      <div class="membar" role="img" aria-label="3,1 de 8 GB en uso">${MEM.map(([, v, c]) => `<i style="flex:${v};background:${c}"></i>`).join('')}</div>
+      <div class="legend-l">${MEM.map(([n, v, c]) => `<div><i style="background:${c}"></i><span>${n}</span><span class="mono">${String(v).replace('.', ',')} GB</span></div>`).join('')}</div>
+      <hr class="divider"><div class="kv" style="padding:0">${ic('memoria', 's16')}<span class="k">Almacenamiento</span><span class="v">9,4 de 32 GB</span></div><div class="bar" style="height:6px"><i style="width:29%;background:var(--fg2)"></i></div>
+    </section>
+  </div>
+  <div class="gs gs-380 stretch">
+    <section class="card" style="display:flex;flex-direction:column;gap:16px"><div class="card-h"><div class="grow"><h3>Tiempo de respuesta · hoy</h3><p class="small muted">Mediana por hora, desde que terminás de hablar hasta que DOMI empieza a responder.</p></div><div class="legend"><span><i style="width:14px;height:8px;border-radius:2px;background:var(--t-ok2)"></i>Rango estimado</span><span><i style="width:14px;height:2px;background:var(--fg2)"></i>Meta 3 s</span></div></div>
+      <div class="chartbox">${chartSVG()}</div></section>
+    <section class="card" style="display:flex;flex-direction:column;gap:14px"><h3>Una orden típica</h3><p class="small muted">«DOMI, apagá la luz de la sala de directorio»</p>
+      <div class="timeline">${PARTS.map(([, , v, c]) => `<i style="flex:${v};background:${c};display:block"></i>`).join('')}</div>
+      <div class="legend-l">${PARTS.map(([n, w, v, c]) => `<div><i style="background:${c}"></i><span style="display:flex;flex-direction:column;color:var(--fg)">${n}<small class="faint" style="font-size:12px">${w}</small></span><span class="mono">${String(v).replace('.', ',')} s</span></div>`).join('')}</div>
+      <hr class="divider"><div style="display:flex;align-items:center"><b style="flex:1;font-weight:500">Total</b><span class="mono" style="font-size:20px;color:var(--ok)">≈ 2,0 s</span></div></section>
+  </div>
+  <div class="gs gs-380 stretch">
+    <section class="card" style="display:flex;flex-direction:column;gap:12px"><h3>Inteligencia en el CORE</h3><p class="small muted">Cada tarea corre donde conviene. Lo único que corre en cada ambiente es la palabra «DOMI».</p>
+      <div class="tablebox"><table class="table"><thead><tr><th>Tarea</th><th>Dónde corre</th><th>Estado</th><th class="r">Memoria</th></tr></thead><tbody>
+      ${[['Palabra de activación «DOMI»', 'microWakeWord', 'En cada NODO', '≈ 50 kB'], ['Voz a texto', 'Whisper', 'CORE', '0,7 GB'], ['Órdenes de la empresa', 'Ruta rápida de frases', 'CORE', '< 0,1 GB'], ['Preguntas abiertas', 'Modelo de lenguaje local', 'CORE · NPU de 16 TOPS', '1,2 GB'], ['Voz de DOMI', 'Piper · español de Argentina', 'CORE', '0,1 GB']].map(([a, b, c, d]) => `<tr><td><b>${a}</b><small>${b}</small></td><td class="small muted">${c}</td><td>${on || c === 'En cada NODO' ? '<span class="badge b-ok"><i></i>Lista</span>' : '<span class="badge b-warn"><i></i>Sin datos</span>'}</td><td class="r mono small">${d}</td></tr>`).join('')}</tbody></table></div></section>
+    <section class="card" style="display:flex;flex-direction:column;gap:14px"><h3>Cerebro de la empresa</h3><p class="small muted">DOMI puede funcionar con un CORE dedicado o con una computadora que la empresa ya tenga.</p>
+      <div role="radiogroup" aria-label="Cerebro de la empresa" style="display:flex;flex-direction:column;gap:10px">
+        <button type="button" class="via" role="radio" aria-checked="${S.core.mode === 'core'}" data-act="coreMode" data-arg="core"><span class="vh">${ic('core', 's16')}<b>DOMI CORE</b>${S.core.mode === 'core' ? '<span class="badge b-ok"><i></i>En uso</span>' : ''}</span><span class="cap muted">AMD Ryzen 5 PRO 8640U · 8 GB LPDDR5x · eMMC de 32 GB.</span></button>
+        <button type="button" class="via" role="radio" aria-checked="${S.core.mode === 'pc'}" data-act="coreMode" data-arg="pc"><span class="vh">${ic('sistema', 's16')}<b>Una computadora de la empresa</b>${S.core.mode === 'pc' ? '<span class="badge b-think"><i></i>Elegida</span>' : '<span class="badge b-neutral"><i></i>Alternativa</span>'}</span><span class="cap muted">Si ya tenés una PC que queda encendida, puede hacer de cerebro sin comprar otro equipo.</span></button>
+      </div>${S.core.mode === 'pc' ? `<p class="note info">${ic('info', 's16')}<span>Para pasar a la computadora, instalá DOMI en ella y dejala encendida; el CORE sigue a cargo hasta que la PC esté lista.</span></p>` : ''}</section>
+  </div></div>`;
+}
+
+/* ---------- Ayuda */
+const FAQ = [['¿La voz sale de la empresa?', 'No. El NODO reconoce «DOMI» por su cuenta y manda solo esa frase al CORE por tu Wi-Fi. El CORE la entiende ahí mismo y no la guarda.'], ['¿Qué pasa si se corta internet?', 'Nada cambia: la voz, las rutinas y este panel viven en el CORE, dentro de tu empresa.'], ['¿Cómo silencio un NODO?', 'Tocá la tapa. El ícono se pone rojo y los micrófonos quedan sin energía. Para volver a activarlos, tocala de nuevo.'], ['Un NODO aparece desconectado', 'Revisá la carga de la batería y que la luz esté encendida. Si parpadea, acercalo al router. Desde Ambientes podés buscarlo de nuevo.'], ['¿Puedo usar mi computadora en lugar del CORE?', 'Sí. Si ya tenés una PC que queda encendida, DOMI puede usarla como cerebro de la empresa. Lo elegís en Sistema.']];
+function vAyuda() {
+  const h = UI.help, er = h.errors;
+  const form = h.sent ? `<div class="sent"><span class="ok">${ic('check', 's24')}</span><h2>Mensaje enviado</h2><p class="muted" style="max-width:36ch">Te respondemos a ${esc(h.sent.email)} en uno o dos días hábiles.</p><span class="badge b-neutral mono" style="height:30px;padding:0 12px"><i></i>Consulta ${h.sent.num}</span><p class="cap faint" style="max-width:34ch">Solo salió lo que escribiste: ningún audio ni registro de la empresa.</p>${btn('Escribir otro mensaje', 'helpNew', { icon: 'editar', id: 'help-new' })}</div>`
+    : `<form id="help-form" novalidate style="display:flex;flex-direction:column;gap:18px"><div><h3>Escribile al equipo</h3><p class="small muted">Te respondemos por correo. Es la única función del panel que usa internet.</p></div>
+    <div class="field"><span class="flabel" id="tema-l">Tema</span><div class="chips" role="group" aria-labelledby="tema-l">${['Instalación', 'Un NODO', 'Rutinas', 'Otro'].map(t => `<button type="button" class="chip" aria-pressed="${h.tema === t}" data-act="helpTema" data-arg="${t}">${t}</button>`).join('')}</div></div>
+    <div class="field"><label for="h-msg">Mensaje</label><textarea class="input${er.msg ? ' bad' : ''}" id="h-msg" placeholder="Contanos qué pasó…" maxlength="800" data-bind="helpMsg" aria-describedby="h-msg-h">${esc(h.msg)}</textarea><span class="help${er.msg ? ' bad' : ''}" id="h-msg-h">${er.msg ? ic('alerta', 's14') + esc(er.msg) : 'No incluyas contraseñas.'}</span></div>
+    <div class="field"><label for="h-email">Tu correo</label><input class="input${er.email ? ' bad' : ''}" id="h-email" type="email" value="${esc(h.email)}" data-bind="helpEmail" aria-describedby="h-email-h"><span class="help${er.email ? ' bad' : ''}" id="h-email-h">${er.email ? ic('alerta', 's14') + esc(er.email) : 'Solo lo usamos para responderte.'}</span></div>
+    <p class="note info">${ic('info', 's16')}<span>Este mensaje sí sale de tu empresa. Solo enviamos lo que escribas acá, sin audio ni registros.</span></p>
+    <div style="display:flex;justify-content:flex-end"><button type="submit" class="btn primary" id="h-send"${h.sending ? ' disabled' : ''}>${h.sending ? '<span class="spin" style="width:16px;height:16px"></span>Enviando…' : ic('enviar') + 'Enviar mensaje'}</button></div></form>`;
+  return `<div style="display:flex;flex-direction:column;gap:32px">${head('Ayuda', '¿En qué te ayudamos?', 'Respuestas rápidas y un canal directo con el equipo de DOMI.')}
+  <div class="gs gs-460"><section class="card faq" aria-label="Preguntas frecuentes"><h3 style="padding-bottom:8px">Preguntas frecuentes</h3>${FAQ.map(([q, a], i) => `<details${i === 0 ? ' open' : ''}><summary>${esc(q)}${ic('chev', 's16')}</summary><p>${esc(a)}</p></details>`).join('')}</section>
+  <section class="card" aria-label="Contacto">${form}</section></div></div>`;
+}
+
+/* ---------- simulador */
+const PHRASES = () => {
+  const base = [{ id: 'luz', kind: 'orden', label: r => `«DOMI, apagá la luz»`, hint: 'Orden de la empresa · ruta rápida' }, { id: 'aire', kind: 'orden', label: () => '«DOMI, poné el aire en 24»', hint: 'Orden de la empresa · ruta rápida' }, { id: 'harina', kind: 'pregunta', label: () => '«DOMI, ¿cuántos gramos tiene una taza de harina?»', hint: 'Pregunta abierta · modelo de lenguaje local' }];
+  for (const ro of S.routines) if (ro.phrase.on && ro.phrase.text.trim()) base.push({ id: 'ro:' + ro.id, kind: 'rutina', label: () => '«' + ro.phrase.text.trim() + '»', hint: 'Rutina «' + ro.name + '»' + (ro.on ? '' : ' · pausada') });
+  return base;
+};
+function vSim() {
+  const ps = PHRASES(); if (!ps.find(p => p.id === UI.simPhrase)) UI.simPhrase = 'luz';
+  if (!room(UI.simRoom)) UI.simRoom = (S.rooms[0] || {}).id;
+  const c = UI.convo;
+  return `<div style="display:flex;align-items:flex-start;gap:12px"><div style="flex:1;display:flex;flex-direction:column;gap:4px"><p class="eyebrow"><span class="dot"></span>Solo para la demo</p><h2>Simulador de la empresa</h2><p class="cap muted">Representa lo que pasa en los equipos. No es parte del panel.</p></div><button type="button" class="icon-btn" data-act="toggleSim" aria-label="Cerrar el simulador" id="sim-close">${ic('cerrar', 's16')}</button></div>
+  <div class="sgrp"><p class="eyebrow" style="color:var(--fg3)">Decir una orden</p>
+    <div class="field"><label for="sim-room">Ambiente donde hablás</label><select class="input" id="sim-room" data-bind="simRoom">${S.rooms.map(r => `<option value="${r.id}"${r.id === UI.simRoom ? ' selected' : ''}>${esc(r.name)} · ${esc(LIGHT[lightOf(r)].label.toLowerCase())}</option>`).join('')}</select></div>
+    <div class="phr" role="group" aria-label="Frase">${ps.map(p => `<button type="button" aria-pressed="${UI.simPhrase === p.id}" data-act="simPhrase" data-arg="${esc(p.id)}">${esc(p.label())}<small>${esc(p.hint)}</small></button>`).join('')}</div>
+    ${btn(UI.busy[UI.simRoom] ? 'DOMI está respondiendo…' : 'Decir', 'simSay', { kind: 'primary', icon: 'mic', disabled: !!UI.busy[UI.simRoom], id: 'sim-say' })}
+    ${UI.liveStep ? `<p class="live-step"><span class="spin" style="width:12px;height:12px;border-width:2px"></span>${esc(UI.liveStep)}</p>` : ''}
+    ${c ? `<div class="convo ${c.tone}" role="status"><span class="you">Vos: ${esc(c.said)}</span><span class="domi">DOMI: ${esc(c.reply)}</span><span class="meta">${esc(c.note)}</span><span class="meta">La conversación no se guarda: se muestra solo acá.</span></div>` : ''}
+  </div>
+  <div class="sgrp"><p class="eyebrow" style="color:var(--fg3)">NODO de cada ambiente</p>
+    ${S.rooms.map(r => { const st = status(r); return `<div class="simroom"><span>${esc(r.name)}<span class="cap faint" style="display:block">${esc(LIGHT[lightOf(r)].label)}${st === 'boot' ? ' · arrancando' : ''}</span></span>${r.plugged ? btn(r.mic ? 'Tocar tapa' : 'Tocar tapa', 'tapLid', { arg: r.id, sm: true, icon: r.mic ? 'micoff' : 'mic' }) : '<span></span>'}${btn(r.plugged ? 'Apagar' : 'Encender', 'plug', { arg: r.id, sm: true, kind: 'ghost', icon: 'energia', disabled: st === 'boot' })}</div>`; }).join('')}
+  </div>
+  <div class="sgrp"><p class="eyebrow" style="color:var(--fg3)">CORE</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">${S.core.link ? btn('Cortar la conexión con el CORE', 'coreLink', { sm: true, icon: 'wifioff', arg: 'off' }) : btn('Restablecer la conexión', 'coreLink', { sm: true, kind: 'primary', icon: 'wifi', arg: 'on' })}</div>
+  </div>
+  <div style="border-top:1px solid var(--l1);padding-top:14px">${btn('Reiniciar la demo', 'resetDemo', { kind: 'ghost', sm: true, icon: 'actualizar' })}</div>`;
+}
+
+/* ================================================================ render */
+function render() {
+  const a = document.activeElement; let key = null, sel = null;
+  if (a && a !== document.body) { if (a.id) key = '#' + a.id; else if (a.dataset && a.dataset.act) key = `[data-act="${a.dataset.act}"]` + (a.dataset.arg != null ? `[data-arg="${CSS.escape(a.dataset.arg)}"]` : ''); try { if (a.selectionStart != null) sel = [a.selectionStart, a.selectionEnd]; } catch (e) { } }
+  $('#side').innerHTML = vSide(); $('#topbar').innerHTML = vTop(); $('#tabbar').innerHTML = vTabs();
+  const V = { inicio: vInicio, ambientes: vAmbientes, rutinas: vRutinas, privacidad: vPrivacidad, sistema: vSistema, ayuda: vAyuda }[UI.view];
+  $('#main').innerHTML = `<div class="page">${UI.boot ? bootView() : V()}</div>`;
+  let layer = '';
+  if (UI.drawer) layer += vDrawer();
+  if (UI.modal) layer += vAdd();
+  if (UI.more) layer += `<div class="layer" role="dialog" aria-modal="true" aria-label="Más secciones"><div class="scrim" data-act="more"></div><div class="modal-w narrow" style="margin:auto auto calc(var(--tab-h) + 16px)"><a class="nav-i${UI.view === 'sistema' ? ' on' : ''}" href="#sistema" data-act="moreClose">${ic('sistema')}<span>Sistema</span></a><a class="nav-i${UI.view === 'ayuda' ? ' on' : ''}" href="#ayuda" data-act="moreClose">${ic('ayuda')}<span>Ayuda</span></a>${coreMini()}</div></div>`;
+  if (UI.confirm) layer += vConfirm();
+  $('#layer').innerHTML = layer;
+  const sim = $('#sim'); sim.hidden = !UI.sim; if (UI.sim) sim.innerHTML = vSim();
+  $('#simFab').setAttribute('aria-expanded', String(UI.sim));
+  document.body.style.overflow = (UI.drawer || UI.modal || UI.confirm) ? 'hidden' : '';
+  if (key) { let el = null; try { el = document.querySelector(key); } catch (e) { } if (el && el !== document.activeElement) { el.focus({ preventScroll: true }); if (sel) try { el.setSelectionRange(sel[0], sel[1]); } catch (e) { } } }
+  requestAnimationFrame(drawLinks);
+  if (REDUCED) requestAnimationFrame(frame);
+  const house = $('#house'); if (house && window.ResizeObserver) { if (!render.ro) render.ro = new ResizeObserver(() => drawLinks()); render.ro.disconnect(); render.ro.observe(house); }
+}
+
+/* ================================================================ acciones */
+function persist() { save(); render(); }
+let returnFocus = null;
+function openLayer(fn) { returnFocus = document.activeElement; fn(); render(); setTimeout(() => { const b = $('#dr-close') || $('#m-close'); if (b) b.focus(); }, 30); }
+function closeLayers() { UI.drawer = null; UI.modal = null; UI.nameErr = null; render(); if (returnFocus && document.contains(returnFocus)) returnFocus.focus(); }
+async function voice(id, pid) {
+  const r = room(id); const p = PHRASES().find(x => x.id === pid); if (!r || !p || UI.busy[id]) return;
+  const said = p.label(r).replace(/[«»]/g, '');
+  const st = status(r);
+  if (st === 'off' || st === 'boot') { UI.convo = { said, reply: '(sin respuesta)', note: `El NODO ${r.de} está desconectado: no puede escucharte.`, tone: 'warn' }; render(); return; }
+  if (st === 'mute') { UI.convo = { said, reply: '(sin respuesta)', note: 'El micrófono está cortado por hardware. Tocá la tapa del NODO para volver a activarlo.', tone: 'mute' }; render(); return; }
+  UI.busy[id] = true; UI.convo = null;
+  const step = async (light, pipe, label, ms) => { UI.light[id] = light; UI.pipe = pipe; UI.liveStep = label; render(); await wait(ms); };
+  await step('escuchando', 0, 'El NODO despertó con «DOMI» y te escucha', 1000);
+  await step('escuchando', 1, 'Envía la frase al CORE por tu Wi-Fi', 450);
+  if (!S.core.online) { UI.light[id] = null; UI.busy[id] = false; UI.pipe = -1; UI.liveStep = null; UI.convo = { said, reply: 'No puedo responder ahora: perdí la conexión con el CORE.', note: 'El NODO avisa con su propia voz que no puede responder.', tone: 'warn' }; render(); return; }
+  const llm = p.kind === 'pregunta';
+  await step('pensando', 2, 'El CORE pasa tu voz a texto', llm ? 900 : 750);
+  await step('pensando', 3, llm ? 'Pregunta abierta: responde el modelo de lenguaje local' : 'Orden de la empresa: ruta rápida, sin modelo de lenguaje', llm ? 700 : 200);
+  const t = llm ? rnd(2.4, 2.8) : rnd(1.7, 2.1);
+  let reply, type = llm ? 'pregunta' : 'voz', title, detail = (llm ? 'Pregunta abierta' : 'Orden por voz') + ' · respondió en ' + secs(t);
+  if (p.id === 'luz') { reply = `Listo, apagué la luz ${r.de}.`; title = `${r.name} · luz apagada`; }
+  else if (p.id === 'aire') { if (r.aire) { reply = `Listo, puse el aire ${r.de} en 24 grados.`; title = `${r.name} · aire en 24 °C`; } else { reply = `En este ambiente no hay un aire acondicionado vinculado.`; title = `${r.name} · orden sin equipo`; } }
+  else if (p.id === 'harina') { reply = 'Una taza de harina común pesa unos 120 gramos.'; title = `${r.name} · pregunta respondida`; }
+  else if (p.kind === 'rutina') { const ro = S.routines.find(x => 'ro:' + x.id === p.id); if (ro && ro.on) { reply = `Listo, puse en marcha «${ro.name}».`; ro.__say = cap(routineSentence(ro)) + '.'; type = 'rutina'; title = `Rutina «${ro.name}»`; detail = `${ro.actions.length} ${ro.actions.length === 1 ? 'acción' : 'acciones'} · pedida desde ${r.name.toLowerCase()}`; ro.lastRun = Date.now(); } else { reply = 'Esa rutina está pausada. Podés activarla desde el panel.'; title = `${r.name} · rutina pausada`; } }
+  await step('respondiendo', 4, 'El CORE genera la voz', 550);
+  await step('voz', 5, 'El NODO habla', 1500);
+  UI.light[id] = null; UI.busy[id] = false; UI.pipe = -1; UI.liveStep = null;
+  r.lastOrder = Date.now(); if (llm) S.stats.llm++; else S.stats.fast++; S.stats.extra.push({ t: Date.now(), s: t }); S.stats.extra = S.stats.extra.slice(-60);
+  log(type, title, detail);
+  const roSaid = (S.routines.find(x => 'ro:' + x.id === p.id) || {}).__say; UI.convo = { said, reply, note: (roSaid ? roSaid + ' ' : '') + (llm ? 'La respondió el modelo de lenguaje del CORE' : 'Ruta rápida del CORE, sin modelo de lenguaje') + ' · ' + secs(t), tone: 'ok' }; for (const x of S.routines) delete x.__say;
+  persist();
+}
+function tapLid(id) { const r = room(id); if (!r || !r.plugged) return; r.mic = !r.mic; if (!r.mic) r.muteAt = Date.now(); UI.light[id] = null; log('privacidad', `${r.name} · micrófono ${r.mic ? 'activado' : 'cortado'}`, 'Desde la tapa del NODO'); toast(r.mic ? 'ok' : 'info', r.mic ? 'Micrófono activado' : 'Micrófono cortado', `${r.name}: tocaste la tapa del NODO.`); persist(); }
+function plug(id) {
+  const r = room(id); if (!r || UI.booting[id]) return;
+  if (r.plugged) { r.plugged = false; r.lostAt = Date.now(); UI.light[id] = null; UI.busy[id] = false; log('conexion', `${r.name} · NODO desconectado`, 'Dejó de responder al CORE'); toast('warn', 'NODO desconectado', `${r.name} dejó de responder al CORE.`); persist(); return; }
+  UI.booting[id] = true; render();
+  setTimeout(() => { delete UI.booting[id]; const rr = room(id); if (!rr) return; rr.plugged = true; UI.search[id] = null; log('conexion', `${rr.name} · NODO conectado`, 'Volvió a responder al CORE'); toast('ok', 'NODO conectado', `El NODO ${rr.de} volvió a la red.`); persist(); }, 2600);
+}
+const A = {
+  toggleSim() { UI.sim = !UI.sim; render(); if (UI.sim) setTimeout(() => { const b = $('#sim-say'); if (b) b.focus(); }, 30); else $('#simFab').focus(); },
+  openSim() { UI.sim = true; if (UI.drawer) UI.simRoom = UI.drawer; render(); setTimeout(() => { const b = $('#sim-say'); if (b) b.focus(); }, 30); },
+  more() { UI.more = !UI.more; render(); },
+  moreClose() { UI.more = false; setTimeout(render, 0); },
+  openRoom(id) { openLayer(() => { UI.drawer = id; UI.nameErr = null; }); },
+  closeDrawer() { commitRoomName(); closeLayers(); },
+  addNodo() { openLayer(() => { UI.drawer = null; UI.modal = { type: 'add', step: 1, choice: null, name: '', color: 'grafito', err: null, heard: false }; }); },
+  closeModal() { closeLayers(); },
+  addStep(s) { const m = UI.modal; if (!m) return; m.step = s === 'err' ? 'err' : Number(s); render(); afterAddStep(); },
+  addColor(c) { UI.modal.color = c; render(); },
+  addChoice() { UI.modal.choice = 'new'; UI.modal.err = null; render(); setTimeout(() => { const i = $('#new-room'); if (i) i.focus(); }, 20); },
+  addContinue() { const m = UI.modal; const n = m.name.trim(); if (!n) { m.err = 'Escribí el nombre del ambiente para continuar.'; render(); $('#new-room') && $('#new-room').focus(); return; } if (S.rooms.some(r => r.name.toLowerCase() === n.toLowerCase())) { m.err = 'Ya hay un ambiente con ese nombre.'; render(); $('#new-room') && $('#new-room').focus(); return; } m.name = n; m.err = null; m.step = 4; render(); afterAddStep(); },
+  addHeard() { const m = UI.modal; if (!m) return; m.heard = true; m.step = 5; render(); },
+  addFinish() {
+    const m = UI.modal; const id = 'a' + Date.now().toString(36); const n = m.name;
+    S.rooms.push({ id, name: n, de: deOf(n), nodo: 'N-' + String(S.seq.nodo).padStart(2, '0'), color: m.color, plugged: true, mic: true, volume: 60, brightness: 70, dnd: false, luz: false, aire: false, equipos: [], signal: -56, lastOrder: null });
+    S.seq.nodo++; log('nodo', `${n} · NODO agregado`, 'Asignado y probado desde el panel');
+    UI.modal = null; save(); if (location.hash !== '#ambientes') location.hash = 'ambientes'; else render();
+    toast('ok', 'NODO agregado', `${cap(deOf(n).replace(/^de(l| la) /, m2 => m2.trim() === 'del' ? 'el ' : 'la '))} ya te escucha. Probá decir «DOMI» desde ahí.`);
+  },
+  searchNodo(id) { UI.search[id] = 'busy'; render(); setTimeout(() => { const r = room(id); if (!r) return; if (r.plugged || UI.booting[id]) { UI.search[id] = null; render(); } else { UI.search[id] = 'fail'; render(); const b = $('#search-nodo'); if (b) b.focus(); } }, 2400); },
+  tapLid(id) { tapLid(id); },
+  plug(id) { plug(id); },
+  toggleDnd(id) { const r = room(id); r.dnd = !r.dnd; persist(); },
+  removeRoom(id) { const r = room(id); ask(`¿Quitar el NODO ${r.de}?`, `El ambiente «${r.name}» deja de aparecer en el panel y sus rutinas ya no lo van a usar. Para volver a sumarlo, agregá el NODO de nuevo.`, 'Quitar NODO', () => { S.rooms = S.rooms.filter(x => x.id !== id); for (const ro of S.routines) for (const a of ro.actions) { if (Array.isArray(a.target)) a.target = a.target.filter(t => t !== id); else if (a.target === id) a.target = 'todos'; } log('nodo', `${r.name} · NODO quitado`, 'Desde el panel'); UI.drawer = null; save(); toast('ok', 'NODO quitado', `${r.name} ya no aparece en el panel.`); }); },
+  cancelConfirm() { const f = UI.confirm && UI.confirm.from; UI.confirm = null; render(); if (f && document.contains(f)) f.focus(); },
+  okConfirm() { const c = UI.confirm; UI.confirm = null; c.fn(); render(); },
+  toggleRoutine(id) { const r = S.routines.find(x => x.id === id); r.on = !r.on; toast('ok', r.on ? 'Rutina activada' : 'Rutina pausada', `«${r.name}»`); persist(); },
+  newRoutine(kind) { if (location.hash !== '#rutinas') { UI.keepEditor = true; location.hash = 'rutinas'; } UI.view = 'rutinas'; UI.editor = { isNew: true, errors: {}, menu: false, draft: { id: null, name: '', icon: 'rutinas', on: true, phrase: { on: true, text: '' }, schedule: { on: false, time: '20:00', days: [0, 1, 2, 3, 4] }, actions: [], lastRun: null } }; window.scrollTo(0, 0); if (kind === 'salgo') { A.useSuggestion(); return; } render(); setTimeout(() => { const i = $('#r-name'); if (i) i.focus(); }, 30); },
+  editRoutine(id) { const r = S.routines.find(x => x.id === id); UI.editor = { isNew: false, errors: {}, menu: false, draft: JSON.parse(JSON.stringify(r)) }; render(); window.scrollTo(0, 0); setTimeout(() => { const b = $('#ed-back'); if (b) b.focus(); }, 30); },
+  closeEditor() { UI.editor = null; render(); window.scrollTo(0, 0); },
+  useSuggestion() { const d = UI.editor.draft; if (!d.name.trim()) d.name = 'Salida de la empresa'; d.icon = 'encendido'; d.actions = [{ type: 'luces', mode: 'apagar', target: ['todas'] }, { type: 'clima', mode: 'apagar', target: S.rooms.filter(r => r.aire).map(r => r.id) }]; UI.editor.errors = {}; render(); setTimeout(() => { const i = $('#r-phrase'); if (i) i.focus(); }, 30); },
+  rPhraseOn() { const d = UI.editor.draft; d.phrase.on = !d.phrase.on; render(); },
+  rSchedOn() { const d = UI.editor.draft; d.schedule.on = !d.schedule.on; if (d.schedule.on && !d.schedule.days.length) d.schedule.days = [0, 1, 2, 3, 4, 5, 6]; render(); },
+  rDay(i) { const d = UI.editor.draft.schedule.days; const k = Number(i); const j = d.indexOf(k); if (j >= 0) d.splice(j, 1); else d.push(k); d.sort(); render(); },
+  actMenu() { UI.editor.menu = true; render(); setTimeout(() => { const b = $('.menu button'); if (b) b.focus(); }, 20); },
+  actAdd(k) { const d = UI.editor.draft; const D = { luces: { type: 'luces', mode: 'apagar', target: [] }, clima: { type: 'clima', mode: 'temperatura', target: [], temp: 24 }, luzNodo: { type: 'luzNodo', value: 30 }, anunciar: { type: 'anunciar', text: '', target: 'todos' } }; d.actions.push(JSON.parse(JSON.stringify(D[k]))); UI.editor.menu = false; delete UI.editor.errors.actions; render(); },
+  actDel(i) { UI.editor.draft.actions.splice(Number(i), 1); UI.editor.errors = {}; render(); },
+  actMode(arg) { const [i, m] = arg.split('|'); UI.editor.draft.actions[i].mode = m; render(); },
+  actTemp(arg) { const [i, s] = arg.split('|'); const a = UI.editor.draft.actions[i]; a.temp = Math.max(16, Math.min(30, a.temp + Number(s))); render(); },
+  actTarget(arg) {
+    const [i, t] = arg.split('|'); const a = UI.editor.draft.actions[i];
+    if (a.type === 'anunciar') a.target = t;
+    else if (t === 'todas') a.target = a.target.includes('todas') ? [] : ['todas'];
+    else { a.target = a.target.filter(x => x !== 'todas'); const j = a.target.indexOf(t); if (j >= 0) a.target.splice(j, 1); else a.target.push(t); }
+    delete UI.editor.errors['a' + i]; render();
+  },
+  saveRoutine() {
+    const E = UI.editor, d = E.draft, er = {};
+    if (!d.name.trim()) er.name = 'Poné un nombre para la rutina.';
+    else if (S.routines.some(r => r.id !== d.id && r.name.toLowerCase() === d.name.trim().toLowerCase())) er.name = 'Ya hay una rutina con ese nombre.';
+    const ph = d.phrase.on && d.phrase.text.trim(), sc = d.schedule.on && d.schedule.days.length;
+    if (d.phrase.on && d.phrase.text.trim() && !/^domi\b/i.test(d.phrase.text.trim())) er.phrase = 'Empezá la frase con «DOMI», así el NODO la reconoce.';
+    if (!ph && !sc) er.trigger = 'Elegí una frase o un horario: sin eso, la rutina no se activaría nunca.';
+    if (d.phrase.on && !d.phrase.text.trim() && !sc) er.phrase = 'Escribí la frase que vas a decir o activá un horario.';
+    if (!d.actions.length) er.actions = 'Sumá al menos una acción.';
+    d.actions.forEach((a, i) => { if ((a.type === 'luces' || a.type === 'clima') && !a.target.length) er['a' + i] = 'Elegí al menos un ambiente.'; if (a.type === 'anunciar' && !a.text.trim()) er['a' + i] = 'Escribí el mensaje que DOMI va a anunciar.'; });
+    E.errors = er;
+    if (Object.keys(er).length) { render(); toast('err', 'No se pudo guardar', 'Revisá los campos marcados.'); const f = $('.input.bad') || $('.action.bad button'); if (f) f.focus(); return; }
+    d.name = d.name.trim(); if (d.phrase.text) d.phrase.text = d.phrase.text.trim().replace(/^domi\b/i, 'DOMI');
+    if (E.isNew) { d.id = 'r' + (S.seq.id++); S.routines.unshift(d); } else { const k = S.routines.findIndex(r => r.id === d.id); S.routines[k] = d; }
+    UI.fresh = d.id; setTimeout(() => { UI.fresh = null; if (UI.view === 'rutinas' && !UI.editor) render(); }, 2600);
+    UI.editor = null; save(); render(); window.scrollTo(0, 0);
+    toast('ok', E.isNew ? 'Rutina creada' : 'Cambios guardados', d.phrase.on && d.phrase.text ? `Decí «${d.phrase.text}» para probarla.` : `«${d.name}» se va a activar a las ${d.schedule.time}.`);
+  },
+  runRoutine(id) { const r = S.routines.find(x => x.id === id); const d = UI.editor ? UI.editor.draft : r; if (!r) return; r.lastRun = Date.now(); if (d) d.lastRun = r.lastRun; log('rutina', `Rutina «${r.name}»`, `${r.actions.length} ${r.actions.length === 1 ? 'acción' : 'acciones'} · probada desde el panel`); save(); render(); toast('ok', 'Rutina ejecutada', cap(routineSentence(r)) + '.'); },
+  deleteRoutine(id) { const r = S.routines.find(x => x.id === id); ask(`¿Eliminar «${r.name}»?`, 'La rutina deja de funcionar en todos los NODO. Esta acción no se puede deshacer.', 'Eliminar rutina', () => { S.routines = S.routines.filter(x => x.id !== id); UI.editor = null; save(); toast('ok', 'Rutina eliminada', `«${r.name}»`); }); },
+  privTranscripts() { if (S.privacy.transcripts) { S.privacy.transcripts = false; toast('ok', 'Transcripciones desactivadas', 'Se borraron las que había en el CORE.'); persist(); } else { UI.privConfirm = 'transcripts'; render(); setTimeout(() => { const b = $('#priv-ok'); if (b) b.focus(); }, 20); } },
+  privTranscriptsOk() { S.privacy.transcripts = true; UI.privConfirm = null; toast('info', 'Transcripciones activadas', 'Se guardan solo en el CORE durante 7 días.'); persist(); },
+  privCancel() { UI.privConfirm = null; render(); },
+  privLog() { S.privacy.log = !S.privacy.log; persist(); },
+  privRet(d) { S.privacy.retention = Number(d); toast('ok', 'Listo', `El registro de acciones se conserva ${d} ${d === '1' ? 'día' : 'días'}.`); persist(); },
+  privClear() { ask('¿Borrar el registro de acciones?', 'Se borran todas las acciones guardadas en el CORE. Las rutinas y los ajustes no cambian.', 'Borrar registro', () => { S.activity = []; save(); toast('ok', 'Registro borrado', 'El CORE ya no guarda acciones anteriores.'); }); },
+  rebootCore() { ask('¿Reiniciar el CORE?', 'Durante unos segundos DOMI no va a responder en ningún ambiente. Las rutinas y los ajustes se conservan.', 'Reiniciar', () => { UI.coreBusy = 'reboot'; S.core.online = false; render(); setTimeout(() => { UI.coreBusy = null; S.core.online = S.core.link; S.core.upSince = Date.now(); log('sistema', 'CORE reiniciado', 'Desde el panel'); save(); render(); toast('ok', 'El CORE volvió', 'DOMI ya responde en toda la empresa.'); }, 6000); }, false); },
+  retryCore() { UI.coreBusy = 'retry'; UI.retryMsg = null; render(); setTimeout(() => { UI.coreBusy = null; if (S.core.link) { S.core.online = true; toast('ok', 'Conexión restablecida', 'El panel vuelve a estar al día.'); } else UI.retryMsg = 'Todavía no responde. Revisá los pasos de abajo y probá de nuevo.'; persist(); const b = $('#retry-core'); if (b) b.focus(); }, 1600); },
+  coreLink(v) { if (v === 'off') { S.core.link = false; S.core.online = false; UI.retryMsg = null; log('conexion', 'Se cortó la conexión con el CORE', 'El panel quedó sin datos nuevos'); toast('warn', 'Sin conexión con el CORE', 'Mirá cómo reacciona el panel.'); } else { S.core.link = true; toast('info', 'Conexión física restablecida', 'Tocá «Reintentar» en el panel o esperá unos segundos.'); setTimeout(() => { if (S.core.link && !S.core.online && UI.coreBusy !== 'reboot') { S.core.online = true; UI.retryMsg = null; toast('ok', 'Conexión restablecida', 'El panel se reconectó solo.'); persist(); } }, 6000); } persist(); },
+  coreMode(m) { S.core.mode = m; persist(); },
+  simPhrase(id) { UI.simPhrase = id; render(); },
+  simSay() { voice(UI.simRoom, UI.simPhrase); },
+  resetDemo() { ask('¿Reiniciar la demo?', 'Vuelven los datos de ejemplo: cuatro ambientes, cinco rutinas y la actividad de hoy.', 'Reiniciar demo', () => { S = seed(); UI.light = {}; UI.busy = {}; UI.search = {}; UI.booting = {}; UI.convo = null; UI.editor = null; UI.drawer = null; UI.modal = null; save(); toast('ok', 'Demo reiniciada', 'Volvieron los datos de ejemplo.'); }, false); },
+  helpTema(t) { UI.help.tema = t; render(); },
+  helpNew() { UI.help = { tema: 'Un NODO', msg: '', email: UI.help.email, errors: {}, sending: false, sent: null }; render(); setTimeout(() => { const t = $('#h-msg'); if (t) t.focus(); }, 30); },
+};
+function afterAddStep() {
+  const m = UI.modal; if (!m) return; const s = m.step;
+  if (s === 2) setTimeout(() => { if (UI.modal === m && m.step === 2) { m.step = 3; render(); setTimeout(() => { const o = $('#opt-new'); if (o) o.focus(); }, 20); } }, 2400);
+  if (s === 4) setTimeout(() => { if (UI.modal === m && m.step === 4 && !m.heard) { m.heard = true; render(); setTimeout(() => { if (UI.modal === m && m.step === 4) { m.step = 5; render(); const b = $('#add-finish'); if (b) b.focus(); } }, 900); } }, 3400);
+  const focusMap = { 1: '#add-next', 2: '#add-help', err: '#add-retry', 4: '#add-heard', 5: '#add-finish' };
+  setTimeout(() => { const b = focusMap[s] && $(focusMap[s]); if (b) b.focus(); }, 20);
+}
+function commitRoomName() {
+  const i = $('#room-name'); const r = room(UI.drawer); if (!i || !r) return true;
+  const n = i.value.trim();
+  if (!n) { UI.nameErr = 'El nombre no puede quedar vacío.'; return false; }
+  if (S.rooms.some(x => x.id !== r.id && x.name.toLowerCase() === n.toLowerCase())) { UI.nameErr = 'Ya hay un ambiente con ese nombre.'; return false; }
+  if (n !== r.name) { r.name = n; r.de = deOf(n); save(); toast('ok', 'Nombre guardado', `Ahora se llama «${n}».`); }
+  UI.nameErr = null; return true;
+}
+const B = {
+  volume(v) { const r = room(UI.drawer); r.volume = Number(v); $('#v-vol').textContent = v + ' %'; save(); },
+  brightness(v) { const r = room(UI.drawer); r.brightness = Number(v); $('#v-bri').textContent = v + ' %'; save(); },
+  roomName() { if (UI.nameErr) { UI.nameErr = null; const i = $('#room-name'); i.classList.remove('bad'); const h = $('#room-name-h'); h.className = 'help'; h.textContent = 'Así lo vas a ver en el panel y en las rutinas. Se guarda al salir del campo.'; } },
+  newRoom(v) { UI.modal.name = v; if (UI.modal.err) { UI.modal.err = null; $('#new-room').classList.remove('bad'); const h = $('#new-room-h'); h.className = 'help'; h.textContent = 'Así lo vas a ver en el panel y en las rutinas.'; } },
+  rName(v) { UI.editor.draft.name = v; $('#ed-title').textContent = v.trim() || 'Nueva rutina'; $('#r-summary').textContent = summaryOf(UI.editor.draft); },
+  rPhrase(v) { UI.editor.draft.phrase.text = v; $('#r-summary').textContent = summaryOf(UI.editor.draft); },
+  rTime(v) { if (v) UI.editor.draft.schedule.time = v; $('#r-summary').textContent = summaryOf(UI.editor.draft); },
+  actValue(v, el) { const a = UI.editor.draft.actions[el.dataset.i]; a.value = Number(v); $(`#act-${el.dataset.i}-vl`).textContent = v + ' %'; $('#r-summary').textContent = summaryOf(UI.editor.draft); },
+  actText(v, el) { UI.editor.draft.actions[el.dataset.i].text = v; $('#r-summary').textContent = summaryOf(UI.editor.draft); },
+  helpMsg(v) { UI.help.msg = v; if (UI.help.errors.msg && v.trim().length >= 10) { delete UI.help.errors.msg; const t = $('#h-msg'); t.classList.remove('bad'); const h = $('#h-msg-h'); h.className = 'help'; h.textContent = 'No incluyas contraseñas.'; } },
+  helpEmail(v) { UI.help.email = v; },
+  simRoom(v) { UI.simRoom = v; render(); },
+};
+
+/* ================================================================ eventos */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el || el.disabled) return;
+  const act = el.dataset.act; if (!A[act]) return;
+  if (el.tagName !== 'A') e.preventDefault();
+  A[act](el.dataset.arg, el, e);
+});
+document.addEventListener('input', e => { const el = e.target; const b = el.dataset && el.dataset.bind; if (b && B[b] && el.tagName !== 'SELECT') B[b](el.value, el, e); });
+document.addEventListener('change', e => { const el = e.target; const b = el.dataset && el.dataset.bind; if (b && B[b] && el.tagName === 'SELECT') B[b](el.value, el, e); if (el.id === 'room-name') { if (!commitRoomName()) render(); else render(); } });
+document.addEventListener('submit', e => {
+  if (e.target.id !== 'help-form') return; e.preventDefault();
+  const h = UI.help; h.errors = {};
+  if (h.msg.trim().length < 10) h.errors.msg = h.msg.trim() ? 'Contanos un poco más (al menos 10 caracteres).' : 'Contanos qué pasó para poder ayudarte.';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(h.email.trim())) h.errors.email = 'Revisá el correo: falta algo (por ejemplo, la @).';
+  if (Object.keys(h.errors).length) { render(); toast('err', 'Falta completar', Object.values(h.errors)[0]); const f = $('.input.bad'); if (f) f.focus(); return; }
+  h.sending = true; render();
+  setTimeout(() => { const d = new Date(); h.sending = false; h.sent = { email: h.email.trim(), num: 'DOMI-' + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(Math.floor(1000 + Math.random() * 9000)) }; render(); toast('ok', 'Mensaje enviado', 'Te respondemos por correo.'); const b = $('#help-new'); if (b) b.focus(); }, 1300);
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (UI.confirm) return A.cancelConfirm();
+  if (UI.modal || UI.drawer) { if (UI.drawer) commitRoomName(); return closeLayers(); }
+  if (UI.more) { UI.more = false; return render(); }
+  if (UI.sim) return A.toggleSim();
+  if (UI.editor && UI.editor.menu) { UI.editor.menu = false; render(); }
+});
+function fromHash() { const h = location.hash.slice(1); UI.view = VIEWS.includes(h) ? h : 'inicio'; }
+window.addEventListener('hashchange', () => { fromHash(); if (UI.keepEditor) UI.keepEditor = false; else UI.editor = null; UI.drawer = null; UI.modal = null; UI.more = false; render(); window.scrollTo(0, 0); $('#main').focus({ preventScroll: true }); });
+
+/* ================================================================ arranque */
+fromHash(); render();
+setTimeout(() => { UI.boot = false; render(); }, 1100);
+requestAnimationFrame(frame);
+setInterval(() => { const el = $('[data-clock]'); if (el) { const n = new Date(); el.textContent = n.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }) + ' · ' + hhmm(n); } }, 20000);
+setInterval(() => { UI.temp = Math.max(51, Math.min(57, UI.temp + Math.round(rnd(-1, 1)))); UI.fan = 30 + (UI.temp - 50) * 3; UI.watt = Math.max(4.2, Math.min(7.8, UI.watt + rnd(-0.4, 0.4))); const t = $('[data-temp]'), f = $('[data-fan]'), w = $('[data-watt]'); if (S.core.online && t) { t.textContent = UI.temp + ' °C'; f.textContent = UI.fan + ' % · silencioso'; w.textContent = UI.watt.toFixed(1).replace('.', ',') + ' W ahora · 4,1 W promedio'; } }, 3000);
+})();
+</script>
+
+</body></html>

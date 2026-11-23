@@ -1,4 +1,4 @@
-// DOMI CORE: geometría del CAD de A. M. Villalba (Modelo_01, 66 piezas, 115 × 105 × 60 mm; la carcasa dividida en cuerpo y tapa).
+// DOMI CORE AE4: geometría del CAD de A. M. Villalba, con la carcasa separada para la vista 3D.
 import * as THREE from 'three';
 import { Dispositivo } from './device.js';
 import { TIPOS, uvCaja, colorLogo } from './materials.js';

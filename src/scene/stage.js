@@ -19,21 +19,21 @@ export function detectarCalidad() {
   let nivel = 'alta';
   if (movil || nucleos <= 4 || memoria <= 4) nivel = 'media';
   if (movil && (nucleos <= 4 || memoria <= 3)) nivel = 'baja';
-  // en computadoras se dibuja por encima de la densidad de la pantalla (supersampling) para cantos y detalles nítidos;
-  // si los cuadros no alcanzan, la calidad adaptativa baja la resolución de a poco
   const dpr = Math.max(1, devicePixelRatio || 1);
   const q = {
-    alta: { pr: Math.min(1.25, dpr), msaa: 0, bloom: true, sombra: 1024 },
-    media: { pr: Math.min(1.25, dpr), msaa: 0, bloom: true, sombra: 512 },
-    baja: { pr: Math.min(1.25, dpr), msaa: 0, bloom: false, sombra: 256 },
+    alta: { pr: 1, pixels: 1350000, sombra: 512 },
+    media: { pr: 0.9, pixels: 1000000, sombra: 256 },
+    baja: { pr: 0.8, pixels: 750000, sombra: 256 },
   }[nivel];
-  // parámetros para medir rendimiento: ?pr=1.25&msaa=2&bloom=0&sombra=0
   const qs = new URLSearchParams(location.search);
-  if (+qs.get('pr') > 0) q.pr = +qs.get('pr');
-  if (qs.has('msaa')) q.msaa = +qs.get('msaa');
-  if (qs.get('bloom') === '0') q.bloom = false;
+  const captura = qs.has('limpio');
+  q.pr = +qs.get('pr') || (captura ? Math.min(1.25, dpr) : Math.min(q.pr, dpr));
+  if (captura || +qs.get('pr') > 0) q.pixels = Infinity;
+  q.msaa = +qs.get('msaa') || 0;
+  q.bloom = qs.get('bloom') === '1' || (captura && qs.get('bloom') !== '0');
+  q.grano = captura;
   q.sinSombra = qs.get('sombra') === '0';
-  return { nivel, movil, ...q };
+  return { ...q, pr: Math.max(0.5, q.pr) };
 }
 
 // Ambiente de estudio: sala oscura con cajas de luz (softboxes) para reflejos limpios en los cantos.
@@ -134,7 +134,6 @@ const Terminacion = {
 
 export function crearEscenario(canvas, Q) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', alpha: false });
-  renderer.setPixelRatio(Q.pr);
   // tono neutro (Khronos PBR Neutral): respeta los colores reales de las terminaciones y no aplasta los grises oscuros
   renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.toneMappingExposure = 1.0;
@@ -184,35 +183,39 @@ export function crearEscenario(canvas, Q) {
     new THREE.MeshBasicMaterial({ map: tex, color: 0x15171c, transparent: true, depthWrite: false, fog: false }));
   fondo.position.set(0, 600, -2400); fondo.visible = false; scene.add(fondo);
 
-  const sombra = new SombraContacto(renderer, Q.sombra);
-  scene.add(sombra.plano);
+  const sombra = Q.sinSombra ? null : new SombraContacto(renderer, Q.sombra);
+  if (sombra) scene.add(sombra.plano);
 
   // posprocesado
   const rt = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, samples: Q.msaa });
   const composer = new EffectComposer(renderer, rt);
   composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.62, 1.05);
-  bloom.enabled = Q.bloom;
-  composer.addPass(bloom);
+  const bloom = Q.bloom ? new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.62, 1.05) : null;
+  if (bloom) composer.addPass(bloom);
   composer.addPass(new OutputPass());
-  const terminacion = new ShaderPass(Terminacion);
-  composer.addPass(terminacion);
+  const terminacion = Q.grano ? new ShaderPass(Terminacion) : null;
+  if (terminacion) composer.addPass(terminacion);
   const fxaa = new ShaderPass(FXAAShader);
   fxaa.enabled = Q.msaa === 0;
   composer.addPass(fxaa);
 
-  let w = 1, h = 1;
+  let w = 1, h = 1, escala = 1;
   function resize() {
     w = canvas.clientWidth || innerWidth; h = canvas.clientHeight || innerHeight;
+    const pr = Math.min(Q.pr, Math.sqrt(Q.pixels / (w * h))) * escala;
+    renderer.setPixelRatio(pr);
     renderer.setSize(w, h, false);
-    composer.setPixelRatio(renderer.getPixelRatio());
+    composer.setPixelRatio(pr);
     composer.setSize(w, h);
-    bloom.resolution.set(w / 2, h / 2);
-    const pr = renderer.getPixelRatio();
     fxaa.material.uniforms.resolution.value.set(1 / (w * pr), 1 / (h * pr));
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
   }
 
-  return { renderer, scene, camera, luces, piso, charco, brilloEstado, fondo, sombra, composer, bloom, terminacion, resize, size: () => ({ w, h }) };
+  function aligerar() {
+    if (bloom?.enabled) { bloom.enabled = false; return; }
+    if (escala > 0.8) { escala = Math.max(0.8, escala - 0.1); resize(); }
+  }
+
+  return { renderer, scene, camera, luces, piso, charco, brilloEstado, fondo, sombra, composer, terminacion, resize, aligerar, size: () => ({ w, h }) };
 }

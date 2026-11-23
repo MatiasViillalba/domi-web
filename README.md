@@ -1,9 +1,13 @@
 # DOMI · web
 
-Web de producto de DOMI, el asistente de voz para el hogar que entiende y responde dentro de tu casa.
-Un DOMI CORE para toda la casa y un DOMI NODO en cada ambiente, en 3D real y con un recorrido que
-avanza con el scroll: presentación, sistema, NODO, privacidad, CORE, diseño (vista abierta),
-cómo funciona, terminaciones, colores, precios y especificaciones.
+Web de producto de DOMI, el asistente de voz con procesamiento local para empresas y organizaciones.
+Un DOMI CORE por sede y un DOMI NODO en cada sala, en 3D real y con un recorrido que avanza con el
+scroll: presentación, sistema, NODO con batería, privacidad, CORE con Ryzen 5 PRO, diseño (vista
+abierta), cómo funciona, terminaciones, precios y especificaciones. Al final reúne la comparación de
+producto, las situaciones de uso, el panel de control y las nueve láminas A3 del trabajo integrador
+(AE4), con la explicación de cada una.
+
+Precios sugeridos: DOMI CORE US$ 449, DOMI NODO con cable US$ 39 y DOMI NODO con batería US$ 59.
 
 Diseño de producto: Fabricio Iván Coronil (DOMI NODO) y Alejandro Matías Villalba (DOMI CORE).
 
@@ -58,15 +62,20 @@ src/scene/materials.js     materiales y regla de contraste del símbolo DOMI
 src/scene/device.js        base común: carga, apertura por grupos, selección, transición de colores
 src/scene/nodo.js          NODO: luz de estado, tela, rejilla perforada, privacidad
 src/scene/core.js          CORE: barra de luz, colores de cuerpo y tapa
-src/scene/beam.js          haz de luz NODO → CORE (la voz que viaja por el Wi-Fi de la casa)
+src/scene/beam.js          haz de luz NODO → CORE (la voz que viaja por el Wi-Fi de la empresa)
 src/scene/app.js           cámara, lógica por sección, selección, exploración libre, bucle de cuadros
 src/story/timeline.js      encuadres y apertura en cada punto del recorrido
 src/story/director.js      interpola el recorrido según el scroll
 src/ui/labels.js           etiquetas con líneas guía sobre las piezas 3D
 src/ui/interfaz.js         textos que aparecen, navegación, vista abierta, configurador, exploración
+src/ui/laminas.js          visor de las láminas A3 en PDF
 src/styles/main.css        estilos, celular y accesibilidad
+src/styles/producto-ae4.css  secciones del AE4: comparación, usos, panel, láminas y precios
+recursos/                  imágenes de las láminas, de los usos en la oficina, de Figma y del panel
 public/models/             nodo.glb y core.glb
 public/renders/            imágenes del producto (versión sin WebGL y tarjetas de precios)
+public/laminas/            láminas A3 en PDF (vistas múltiples, isométricas, explotadas y renders)
+public/panel/              panel de control DOMI para la oficina (demostración con datos de ejemplo)
 public/brand/              logo y símbolo DOMI
 ```
 

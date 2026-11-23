@@ -1,0 +1,233 @@
+.nav nav { gap: clamp(9px, 1.35vw, 19px); }
+
+.presentacion-ae4 {
+  --ae4-panel: #111824;
+  --ae4-borde: #2b3a51;
+  --ae4-acento: #aecbfa;
+  --ae4-suave: #b4c1d5;
+  padding-block: clamp(58px, 9vw, 112px);
+  background: #0b0f16;
+}
+
+.presentacion-ae4 section {
+  scroll-margin-top: calc(var(--nav) + 24px);
+}
+
+.presentacion-ae4 section + section {
+  margin-top: clamp(48px, 6vw, 78px);
+}
+
+.presentacion-ae4 .ceja { color: var(--ae4-acento); }
+.presentacion-ae4 .ceja::before { background: var(--ae4-acento); box-shadow: none; }
+.presentacion-ae4 h2 { font-size: clamp(28px, 4.2vw, 52px); }
+.escenas-intro, .laminas-ayuda { margin: 12px 0 22px; color: var(--ae4-suave); font-size: .92rem; }
+
+.comparacion-referentes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-block: 14px 22px;
+  color: var(--ae4-suave);
+  font-size: .88rem;
+}
+
+.comparacion-referentes a { color: var(--ae4-acento); text-underline-offset: 3px; }
+
+.comparacion-ventajas {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.comparacion-ventajas { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+.comparacion-ventajas li {
+  padding: 15px;
+  border: 1px solid var(--ae4-borde);
+  border-top-color: #779fdc;
+  border-radius: 12px;
+  background: linear-gradient(150deg, #182744, var(--ae4-panel));
+}
+
+.comparacion-ventajas strong,
+.comparacion-ventajas span { display: block; }
+.comparacion-ventajas strong { margin-bottom: 5px; color: var(--ae4-acento); line-height: 1.3; }
+.comparacion-ventajas span { color: var(--ae4-suave); font-size: .83rem; }
+
+.galeria-escenas, .galeria-laminas {
+  display: grid;
+  gap: 14px;
+}
+
+.galeria-escenas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.galeria-laminas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.escena-uso, .lamina {
+  margin: 0;
+  border: 1px solid var(--ae4-borde);
+  border-radius: 12px;
+  background: var(--ae4-panel);
+}
+
+.lamina { display: block; text-decoration: none; }
+.escena-uso a { display: block; border-radius: 12px 12px 0 0; }
+.escena-uso:hover, .lamina:hover { border-color: var(--ae4-acento); }
+
+.escena-uso img, .lamina img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 11px 11px 0 0;
+}
+
+.lamina img { background: #fff; }
+
+.escena-uso figcaption, .lamina-titulo {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  line-height: 1.35;
+  font-size: .91rem;
+}
+
+.escena-uso figcaption span, .lamina-titulo span { color: var(--ae4-suave); font-size: .81rem; }
+
+.panel-vista {
+  padding: clamp(20px, 4vw, 42px);
+  border: 1px solid var(--ae4-borde);
+  border-radius: 16px;
+  background: var(--ae4-panel);
+}
+
+.panel-intro > p:last-of-type { margin: 13px 0; color: var(--ae4-suave); max-width: 64ch; }
+.abrir-panel { text-decoration: none; }
+.panel-capturas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.panel-capturas figure {
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid var(--ae4-borde);
+  border-radius: 12px;
+  background: #0b101a;
+}
+
+.panel-capturas img { display: block; width: 100%; height: auto; }
+.panel-capturas figcaption { padding: 9px 12px; color: var(--ae4-suave); font-size: .84rem; }
+.panel-proceso {
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid var(--ae4-borde);
+}
+
+.panel-proceso h3 { margin: 0; font-size: clamp(1.12rem, 3vw, 1.42rem); }
+.panel-proceso p { max-width: 75ch; margin: 8px 0 0; color: var(--ae4-suave); font-size: .9rem; }
+
+.visor-lamina {
+  width: min(calc(100% - 24px), 1360px);
+  max-width: none;
+  height: min(calc(100dvh - 28px), 1100px);
+  max-height: none;
+  padding: 0;
+  border: 1px solid var(--ae4-borde);
+  border-radius: 14px;
+  background: var(--ae4-panel);
+  color: var(--texto);
+  overflow: hidden;
+}
+
+.visor-lamina[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+.visor-lamina::backdrop { background: rgb(3 6 12 / 83%); }
+body:has(.visor-lamina[open]) { overflow: hidden; }
+
+.visor-lamina-cabecera {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 8px 18px;
+}
+
+.visor-lamina-cabecera h3 { margin: 0; font-size: clamp(.82rem, 2.3vw, 1.04rem); line-height: 1.25; }
+.visor-lamina-cabecera a { text-decoration: none; }
+.visor-lamina iframe { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
+
+.cerrar-lamina {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid var(--ae4-borde);
+  border-radius: 50%;
+  background: #1b273a;
+  font-size: 1.65rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cerrar-lamina:hover { border-color: var(--ae4-acento); }
+
+@media (max-width: 1000px) {
+  .comparacion-ventajas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .galeria-escenas, .galeria-laminas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .nav { grid-template-columns: max-content minmax(0, 1fr) max-content; column-gap: 10px; padding-inline: clamp(10px, 2vw, 20px); }
+  .nav nav { display: flex; justify-content: center; gap: 10px; font-size: 12px; }
+  .nav nav a:not(.acceso-ae4) { display: none; }
+}
+
+@media (max-width: 730px) {
+  .galeria-escenas, .panel-capturas { grid-template-columns: minmax(0, 1fr); }
+  .comparacion-ventajas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 435px) {
+  .comparacion-ventajas, .galeria-laminas { grid-template-columns: minmax(0, 1fr); }
+  .nav-marca { gap: 5px; letter-spacing: .12em; }
+  .nav nav { gap: 7px; }
+  .visor-lamina-cabecera { gap: 8px; padding-left: 10px; }
+  .visor-lamina-cabecera .boton { padding-inline: 8px; font-size: .7rem; }
+}
+
+/* Precios del AE4: tres equipos y dos combinaciones para una sede */
+.precios.precios-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.paquetes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+.paquete { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 18px 22px; border: 1px solid var(--linea); border-radius: 16px; background: var(--bg2); }
+.paquete span { color: var(--sec); font-size: 15px; line-height: 1.4; }
+.paquete b { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.desglose .desglose-sub { margin-top: 34px; }
+
+@media (max-width: 900px) {
+  .precios.precios-3, .paquetes { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Láminas: criterios, correcciones del AE3 y lectura de cada lámina */
+.precio-foto.claro, .precio-foto.claro img { background: #fafafc; }
+.laminas-intro { max-width: 70ch; margin: 14px 0 0; color: var(--ae4-suave); line-height: 1.55; }
+.laminas-criterios { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 22px 0 0; padding: 0; list-style: none; }
+.laminas-criterios li { padding: 14px 15px; border: 1px solid var(--ae4-borde); border-radius: 12px; background: var(--ae4-panel); }
+.laminas-criterios strong, .laminas-criterios span { display: block; }
+.laminas-criterios strong { margin-bottom: 5px; color: var(--ae4-acento); }
+.laminas-criterios span { color: var(--ae4-suave); font-size: .84rem; line-height: 1.45; }
+.laminas-correcciones { margin-top: 16px; padding: 18px 20px; border: 1px solid var(--ae4-borde); border-left: 3px solid #779fdc; border-radius: 12px; background: linear-gradient(150deg, #142036, var(--ae4-panel)); }
+.laminas-correcciones h3 { margin: 0 0 8px; font-size: 1.05rem; }
+.laminas-correcciones p { max-width: 90ch; margin: 6px 0 0; color: var(--ae4-suave); font-size: .9rem; line-height: 1.5; }
+.laminas-correcciones strong { color: var(--texto); }
+.galeria-laminas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.lamina-lectura { display: block; padding: 0 14px 14px; color: var(--ae4-suave); font-size: .82rem; line-height: 1.45; }
+
+@media (max-width: 1000px) {
+  .laminas-criterios { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 435px) {
+  .laminas-criterios { grid-template-columns: minmax(0, 1fr); }
+}

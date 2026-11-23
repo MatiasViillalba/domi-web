@@ -1,4 +1,4 @@
-// DOMI NODO v2: geometría del CAD de F. I. Coronil + rejilla, tela y luz de estado.
+// DOMI NODO AE4: batería integrada del CAD de F. I. Coronil.
 // Los patrones de luz y la grilla de la rejilla se adaptaron del visor_3d del kit.
 import * as THREE from 'three';
 import { Dispositivo, prog } from './device.js';
@@ -10,6 +10,9 @@ import { ESTADOS } from '../data/producto.js';
 const REJ = { r_in: 47.2, r_out: 48.0, z0: 18, z1: 90, columnas: 126, filas: 33, z_primera_fila: 20.9, paso_z: 2.0784609690826525, agujero: 1.6 };
 const MAT = { cols: 13, filas: 7, a0: 195, a1: 345, z0: 41, dz: 7 };
 const PA = (MAT.a1 - MAT.a0) / MAT.cols;
+const ALTO_MODULO = 28.6;
+const PIEZAS_BATERIA = ['ModuloBateria', 'SoporteBateria', 'CeldasBateria', 'ModuloCarga'];
+const BASE_FIJA = ['TapaInferior', 'BaseSilicona', 'LogoBase', 'Tornillos'];
 
 const COL = {
   vidrio: { grafito: '#050507', blanco: '#ecece8', gris: '#b9bcc2', beige: '#c9bda6' },
@@ -50,9 +53,10 @@ function perforar(mat) {
 }
 
 export class Nodo extends Dispositivo {
-  constructor(gltfRoot, Q) {
+  constructor(gltfRoot) {
     super(NODO, gltfRoot);
-    this.Q = Q;
+    this.pasoLuz = 0;
+    this.huboBrillo = false;
     this.estado = 'reposo'; this.estadoPrev = 'reposo'; this.mezcla = 1;
     this.col = new THREE.Color(ESTADOS.reposo.color);
     this.led = new Float32Array(MAT.cols * MAT.filas); this.ledA = new Float32Array(this.led.length); this.ledB = new Float32Array(this.led.length);
@@ -64,8 +68,12 @@ export class Nodo extends Dispositivo {
     this.armarRejilla();
     this.armarGrupos();
     this.mapearLeds();
+    for (const id of [...BASE_FIJA, ...PIEZAS_BATERIA]) this.lift.add(this.piezas.get(id).mesh);
+    this.modelo.position.y = ALTO_MODULO;
     this.setExplode(0);
   }
+
+  get alturaModulo() { return ALTO_MODULO; }
 
   // Pasivos, resistores, pads y serigrafía están en dos placas: se separan por altura.
   partirMallas() {
@@ -103,6 +111,7 @@ export class Nodo extends Dispositivo {
       pista: () => TIPOS.pcb('#1d5a3a'), serigrafia: () => TIPOS.plastico_mate('#d4d4cf'), oro: () => TIPOS.oro('#e3b75a'),
       mlcc: () => TIPOS.plastico('#b79c6e'), resistor: () => TIPOS.plastico('#18181a'), marcado: () => TIPOS.aluminio('#8a8d93'),
       relleno: () => TIPOS.relleno('#8a8984'), tela: () => TIPOS.plastico_mate('#0b0b0d'),
+      celda: () => TIPOS.plastico('#526a56'),
     };
     for (const p of this.piezas.values()) {
       const k = p.extras.mat || 'chasis';
@@ -119,11 +128,12 @@ export class Nodo extends Dispositivo {
 
   armarRejilla() {
     // tela acústica con el brillo de los LED y rejilla perforada con la grilla exacta del CAD
-    this.glowC = document.createElement('canvas'); this.glowC.width = 1024; this.glowC.height = 256;
+    this.glowC = document.createElement('canvas'); this.glowC.width = 512; this.glowC.height = 128;
     this.gctx = this.glowC.getContext('2d');
-    this.ledC = document.createElement('canvas'); this.ledC.width = 1024; this.ledC.height = 256;
+    this.ledC = document.createElement('canvas'); this.ledC.width = 512; this.ledC.height = 128;
     this.lctx = this.ledC.getContext('2d');
     this.glowTex = new THREE.CanvasTexture(this.glowC); this.glowTex.colorSpace = THREE.SRGBColorSpace;
+    this.glowTex.generateMipmaps = false; this.glowTex.minFilter = THREE.LinearFilter;
     this.glowTex.wrapS = THREE.RepeatWrapping; this.glowTex.offset.x = 0.5;
 
     const telaGLB = this.piezas.get('TelaAcustica'); if (telaGLB) telaGLB.mesh.removeFromParent();
@@ -185,12 +195,12 @@ export class Nodo extends Dispositivo {
     const cols = MAT.cols, rows = MAT.filas, cc = (cols - 1) / 2, cr = (rows - 1) / 2, mmc = 38.8 * PA * Math.PI / 180;
     for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) {
       const x = (c - cc) / cc, v = r / (rows - 1); let I = 0;
-      if (s === 'escuchando') I = Math.exp(-(((v - 0.95) / 0.2) ** 2)) * (0.5 + 0.5 * Math.cos(x * Math.PI / 2)) * (0.8 + 0.2 * Math.sin(t * 2.2));
+      if (s === 'escuchando') I = Math.exp(-(((v - 0.24) / 0.2) ** 2)) * (0.5 + 0.5 * Math.cos(x * Math.PI / 2)) * (0.8 + 0.2 * Math.sin(t * 2.2));
       else if (s === 'pensando') {
         const dx = (c - cc) * mmc, dy = (r - cr) * MAT.dz, d = Math.hypot(dx, dy);
         let ph = Math.atan2(dy, dx) / (Math.PI * 2) - t * 0.55; ph -= Math.floor(ph);
         I = Math.exp(-(((d - 19) / 4.5) ** 2)) * (0.3 + 0.7 * ph ** 1.6);
-      } else if (s === 'respondiendo') {
+      } else if (s === 'respondiendo' || s === 'voz') {
         const env = 0.5 + 0.5 * Math.abs(Math.sin(t * 5.2) * Math.sin(t * 1.9 + 0.6));
         I = Math.exp(-((v / 0.28) ** 2)) * (0.55 + 0.45 * Math.cos(x * Math.PI / 2)) * env;
       }
@@ -205,18 +215,18 @@ export class Nodo extends Dispositivo {
     const uvOf = (a, z) => [((((a + 270) % 360) + 360) % 360) / 360, (z - 20) / 68];
     for (let c = 0; c < MAT.cols; c++) for (let r = 0; r < MAT.filas; r++) {
       const I = this.led[c * MAT.filas + r]; if (I < 0.01) continue;
-      const [u, v] = uvOf(MAT.a0 + PA / 2 + PA * c, MAT.z0 + MAT.dz * r);
+      const [u, v] = uvOf(MAT.a0 + PA / 2 + PA * c, 23 + 3.4 * r);
       l.fillStyle = `rgba(${rgb},${Math.min(1, I)})`; l.beginPath(); l.arc(u * W, (1 - v) * H, px * 0.72, 0, 7); l.fill();
     }
     for (let k = 0; k < this.anguloAnillo.length; k++) {
       const I = this.anillo[k]; if (I < 0.01) continue;
       const [u] = uvOf(this.anguloAnillo[k], 0);
       const gr = l.createLinearGradient(0, H, 0, H * 0.72); gr.addColorStop(0, `rgba(${rgb},${I})`); gr.addColorStop(1, `rgba(${rgb},0)`);
-      l.fillStyle = gr; l.fillRect(u * W - 26, H * 0.72, 52, H * 0.28);
+      l.fillStyle = gr; l.fillRect(u * W - 13, H * 0.72, 26, H * 0.28);
     }
     g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
-    g.filter = 'blur(13px)'; g.drawImage(this.ledC, 0, 0); g.drawImage(this.ledC, 0, 0);
-    g.filter = 'blur(5px)'; g.globalAlpha = 0.45; g.drawImage(this.ledC, 0, 0);
+    g.filter = 'blur(6.5px)'; g.drawImage(this.ledC, 0, 0); g.drawImage(this.ledC, 0, 0);
+    g.filter = 'blur(2.5px)'; g.globalAlpha = 0.45; g.drawImage(this.ledC, 0, 0);
     g.globalAlpha = 1; g.filter = 'none';
     this.glowTex.needsUpdate = true;
   }
@@ -233,7 +243,7 @@ export class Nodo extends Dispositivo {
   // ---------------------------------------------------------------- colores del configurador
   setColores(cuerpo, tapa) {
     const C = { grafito: '#1d1e22', blanco: '#e7e7e3', gris: '#b9bcc2', beige: '#c9bda6' };
-    for (const id of ['BandaInferior', 'BandaSuperior', 'TapaInferior']) this.colorear(this.piezas.get(id)?.mesh.material, C[cuerpo]);
+    for (const id of ['BandaInferior', 'BandaSuperior', 'TapaInferior', 'ModuloBateria']) this.colorear(this.piezas.get(id)?.mesh.material, C[cuerpo]);
     this.colorear(this.mRej, cuerpo === 'grafito' ? '#24252a' : C[cuerpo]);
     this.colorear(this.mTela, COL.tela[cuerpo]);
     this.colorear(this.piezas.get('BaseSilicona')?.mesh.material, COL.base[cuerpo]);
@@ -248,8 +258,15 @@ export class Nodo extends Dispositivo {
     this.setExplode(explode);
     super.update(dt);
     if (!this.root.visible) return;          // fuera de cuadro no se calcula la luz
-    // estado de luz con transición suave
+    const cerca = 1 - prog(explode, 0, 0.16);
+    this.mTela.emissiveIntensity = 2.4 * cerca; this.mRej.emissiveIntensity = 0.1 * cerca;
+
+    // El difusor y los LED físicos no necesitan actualizarse a cada cuadro de la cámara.
     const s = this.efectivo();
+    this.pasoLuz += dt;
+    if (s === this.mostrado && this.pasoLuz < 1 / 25) return;
+    dt = this.pasoLuz;
+    this.pasoLuz = 0;
     if (s !== this.mostrado) { this.estadoPrev = this.mostrado || 'reposo'; this.mostrado = s; this.mezcla = 0; }
     this.mezcla = Math.min(1, this.mezcla + dt * 2.2);
     this.patron(this.estadoPrev, t, this.ledA);
@@ -259,23 +276,36 @@ export class Nodo extends Dispositivo {
     const env = s === 'respondiendo' ? 0.45 + 0.55 * Math.abs(Math.sin(t * 5.2) * Math.sin(t * 1.9 + 0.6)) : 0;
     for (let k = 0; k < this.anillo.length; k++) this.anillo[k] += (env - this.anillo[k]) * Math.min(1, dt * 10);
     this.col.lerp(new THREE.Color(ESTADOS[s].color), Math.min(1, dt * 4));
-    this.dibujarBrillo();
-    // la luz que se ve a través de la rejilla viene de los LED: se apaga cuando la carcasa se aleja
-    const cerca = 1 - prog(explode, 0, 0.16);
-    this.mTela.emissiveIntensity = 2.4 * cerca; this.mRej.emissiveIntensity = 0.1 * cerca;
-    // LED físicos (visibles con la carcasa abierta)
-    const pinta = (V, arr, gain) => {
-      if (!V) return; const a = V.col.array;
-      for (let i = 0; i < V.ix.length; i++) { const I = arr[V.ix[i]]; a[i * 3] = 0.12 + this.col.r * I * gain; a[i * 3 + 1] = 0.12 + this.col.g * I * gain; a[i * 3 + 2] = 0.12 + this.col.b * I * gain; }
-      V.col.needsUpdate = true;
-    };
-    pinta(this.vMatriz, this.led, 2.6);
-    pinta(this.vAnillo, this.anillo, 4);
+    this.energia = this.led.reduce((a, b) => a + b, 0) / 60 + this.anillo[0] * 0.8;
+    const brilla = this.energia > 0.005;
+    const brilloTela = brilla && cerca > 0;
+    if (brilloTela) this.dibujarBrillo();
+    else if (this.brilloTela) {
+      this.gctx.clearRect(0, 0, this.glowC.width, this.glowC.height);
+      this.glowTex.needsUpdate = true;
+    }
+
+    if (brilla || this.huboBrillo) {
+      const pinta = (V, arr, gain) => {
+        if (!V) return;
+        const a = V.col.array;
+        for (let i = 0; i < V.ix.length; i++) {
+          const I = brilla ? arr[V.ix[i]] * gain : 0;
+          a[i * 3] = 0.12 + this.col.r * I;
+          a[i * 3 + 1] = 0.12 + this.col.g * I;
+          a[i * 3 + 2] = 0.12 + this.col.b * I;
+        }
+        V.col.needsUpdate = true;
+      };
+      pinta(this.vMatriz, this.led, 2.6);
+      pinta(this.vAnillo, this.anillo, 4);
+    }
+    this.brilloTela = brilloTela;
+    this.huboBrillo = brilla;
     // ícono de la tapa y LED de privacidad: misma señal
-    const ic = s === 'reposo' ? new THREE.Color('#d8dbe2').multiplyScalar(0.7) : this.col.clone().multiplyScalar(2.2);
+    const ic = new THREE.Color(s === 'silencio' ? ESTADOS.silencio.color : '#96989c');
     if (this.mIcono) this.mIcono.color.copy(ic);
     if (this.mLedPriv) this.mLedPriv.color.copy(ic);
-    this.energia = this.led.reduce((a, b) => a + b, 0) / 60 + this.anillo[0] * 0.8;
     if (this.mDifusor) this.mDifusor.emissive.copy(this.col).multiplyScalar(Math.min(1, this.energia) * 0.25);
   }
 }

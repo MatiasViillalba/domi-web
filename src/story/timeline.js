@@ -20,7 +20,7 @@ export const ANCLAS = [
   { sec: 'inicio', p: 0.45, s: { key: 1, rim: 1, fill: 1, env: 1, el: 9, r: 200, oy: -0.42, mr: 0.92 } },
   { sec: 'inicio', p: 1, s: { el: 13, az: -10, r: 152, oy: -0.2, mr: 1.1, moy: -0.1 } },
 
-  // 2 · El problema: la voz sube y se va de la casa
+  // 2 · El problema: una conversación que sale de la red local.
   { sec: 'problema', p: 0.0, s: {} },
   { sec: 'problema', p: 0.35, s: { tx: -80, ty: 70, az: 18, el: 10, r: 105, ox: 0.34, oy: 0, mox: 0, moy: 0.2, cX: 300, cZ: -80, haz: 1, cielo: 1 } },
   { sec: 'problema', p: 1, s: { az: 6, el: 18, r: 120 } },
@@ -72,9 +72,9 @@ export const ANCLAS = [
   { sec: 'personaliza', p: 0.25, s: 'configurador' },
   { sec: 'personaliza', p: 1, s: 'configurador' },
 
-  // 11 · Comprar y especificaciones: la escena se apaga
-  { sec: 'comprar', p: 0, s: { fade: 1 } },
-  { sec: 'comprar', p: 0.12, s: { fade: 0 } },
+  // Comparación, precios y especificaciones: salen de la escena 3D.
+  { sec: 'bateria', p: 0, s: { fade: 1 } },
+  { sec: 'bateria', p: 0.12, s: { fade: 0 } },
 ];
 
 // Encuadre del configurador según el producto elegido

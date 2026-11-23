@@ -16,6 +16,33 @@ import { Interfaz } from '../ui/interfaz.js';
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
 
+function rutasDeModelos(base) {
+  if (location.protocol !== 'file:') {
+    return {
+      nodo: `${base}models/nodo.glb`,
+      core: `${base}models/core.glb`,
+    };
+  }
+
+  // Un script clásico puede leer los recursos del archivo sin hacer fetch a file://.
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `${base}models/modelos-locales.js`;
+    script.onload = () => {
+      const modelos = globalThis.domiModelosLocales;
+      delete globalThis.domiModelosLocales;
+      script.remove();
+      if (modelos?.nodo && modelos?.core) resolve(modelos);
+      else reject(new Error('Los modelos locales del NODO y del CORE están incompletos.'));
+    };
+    script.onerror = () => {
+      script.remove();
+      reject(new Error('No se pudieron cargar los modelos locales de DOMI.'));
+    };
+    document.head.append(script);
+  });
+}
+
 export async function iniciar({ base, alProgreso, reducido }) {
   const Q = detectarCalidad();
   const canvas = document.getElementById('gl');
@@ -24,14 +51,18 @@ export async function iniciar({ base, alProgreso, reducido }) {
 
   // ---------------------------------------------------------------- carga
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+  const modelos = await rutasDeModelos(base);
   const prog = { nodo: 0, core: 0 };
-  const cargar = (f, k) => new Promise((res, rej) => loader.load(base + 'models/' + f, res, (e) => {
-    if (e.total) prog[k] = e.loaded / e.total; alProgreso((prog.nodo + prog.core) / 2);
-  }, rej));
-  const [gN, gC] = await Promise.all([cargar('nodo.glb', 'nodo'), cargar('core.glb', 'core')]);
+  const cargar = (nombre) => new Promise((resolve, reject) => {
+    loader.load(modelos[nombre], resolve, (evento) => {
+      if (evento.total) prog[nombre] = evento.loaded / evento.total;
+      alProgreso((prog.nodo + prog.core) / 2);
+    }, reject);
+  });
+  const [gN, gC] = await Promise.all([cargar('nodo'), cargar('core')]);
   alProgreso(1);
 
-  const nodo = new Nodo(gN.scene, Q);
+  const nodo = new Nodo(gN.scene);
   const core = new Core(gC.scene);
   E.scene.add(nodo.root, core.root);
   const haz = new Haz(E.scene);
@@ -42,6 +73,7 @@ export async function iniciar({ base, alProgreso, reducido }) {
   const etiquetas = new Etiquetas(document.getElementById('etiquetas'), E.camera);
   const ui = new Interfaz({ director, disp, reducido });
   const controls = new OrbitControls(E.camera, canvas);
+  canvas.style.touchAction = ''; // OrbitControls bloquea el scroll táctil al conectarse. El CSS lo limita al modo explorar.
   controls.enabled = false; controls.enableDamping = true; controls.dampingFactor = 0.08; controls.enablePan = false;
 
   const ajustar = () => { E.resize(); director.medir(); };
@@ -53,10 +85,11 @@ export async function iniciar({ base, alProgreso, reducido }) {
   // Compila todos los materiales mientras está la pantalla de carga: si se compilan la primera vez que una pieza
   // aparece en cuadro (el CORE recién en su sección, la vista abierta, la rejilla), el scroll se traba un instante.
   nodo.root.visible = core.root.visible = true;
-  E.renderer.compile(E.scene, E.camera);
-  for (const d of [nodo, core]) { d.setExplode(1); d.update(0, 0, 1); }
-  E.renderer.compile(E.scene, E.camera);
-  for (const d of [nodo, core]) { d.setExplode(0); d.update(0, 0, 0); }
+  await E.renderer.compileAsync(E.scene, E.camera);
+  for (const d of [nodo, core]) d.setExplode(1);
+  await E.renderer.compileAsync(E.scene, E.camera);
+  for (const d of [nodo, core]) d.setExplode(0);
+  director.saltar();
 
   // ---------------------------------------------------------------- selección de piezas (interior)
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
@@ -151,16 +184,17 @@ export async function iniciar({ base, alProgreso, reducido }) {
       lista.push({ key: 'sis:nodo', pos: nodo.centro('BandaSuperior', [0, 26, 0]), titulo: 'DOMI NODO', sub: 'Te escucha y te responde', alpha: p > 0.3 ? 1 : 0 });
       lista.push({ key: 'sis:core', pos: core.centro('Carcasa_tapa', [0, 8, 0]), titulo: 'DOMI CORE', sub: 'Entiende lo que pedís', alpha: p > 0.38 ? 1 : 0 });
     } else if (sec === 'nodo-exterior') {
-      const orden = ['escuchando', 'pensando', 'respondiendo'];
-      estN = p < 0.14 ? 'reposo' : orden[Math.min(2, Math.floor(((p - 0.14) / 0.86) * 3))];
+      const orden = ['escuchando', 'pensando', 'respondiendo', 'voz'];
+      estN = p < 0.14 ? 'reposo' : orden[Math.min(orden.length - 1, Math.floor(((p - 0.14) / 0.86) * orden.length))];
       const a = p > 0.16 ? 1 : 0;
       lista.push({ key: 'ne:tapa', pos: nodo.centro('Vidrio', [10, 1, -8]), titulo: 'Tapa táctil', sub: 'Un toque apaga el micrófono', alpha: a });
       lista.push({ key: 'ne:mic', pos: nodo.centro('Juntas', [46, 0, 0]), titulo: 'Micrófonos', sub: 'Te escuchan desde cualquier lado', alpha: a, normal: N(1, 0, 0, 'nodo') });
       lista.push({ key: 'ne:rej', pos: nodo.centro('Rejilla', [0, 4, 48]), titulo: 'Sonido 360°', sub: 'Llena todo el ambiente', alpha: a, normal: N(0, 0, 1, 'nodo') });
-      lista.push({ key: 'ne:usb', pos: nodo.centro('USBC', [0, 0, -1]), titulo: 'USB-C', sub: 'Un solo cable', alpha: a, normal: N(0, 0, -1, 'nodo') });
+      lista.push({ key: 'ne:usb', pos: nodo.centro('USBC', [0, 0, -1]), titulo: 'USB-C', sub: 'Carga prevista', alpha: a, normal: N(0, 0, -1, 'nodo') });
+      lista.push({ key: 'ne:bateria', pos: nodo.centro('ModuloBateria', [42, 0, 8]), titulo: 'Batería', sub: 'Módulo inferior de 28,6 mm', alpha: a });
     } else if (sec === 'privacidad') {
       estN = 'escuchando';
-      lista.push({ key: 'pr:ic', pos: nodo.centro('Icono'), titulo: nodo.privado ? 'Micrófono apagado' : 'Micrófono encendido', sub: nodo.privado ? 'Ícono rojo: DOMI no escucha' : 'Ícono verde: DOMI te escucha', alpha: p > 0.25 ? 1 : 0 });
+      lista.push({ key: 'pr:ic', pos: nodo.centro('Icono'), titulo: nodo.privado ? 'Micrófono apagado' : 'Micrófono encendido', sub: nodo.privado ? 'Ícono rojo: DOMI no escucha' : 'La tapa controla el micrófono', alpha: p > 0.25 ? 1 : 0 });
       lista.push({ key: 'pr:tapa', pos: nodo.centro('Vidrio', [-30, 0, 18]), titulo: 'Toda la tapa es un botón', sub: 'Un toque y listo', alpha: p > 0.3 ? 1 : 0 });
     } else if (sec === 'core-exterior') {
       const a = p > 0.12 ? 1 : 0;
@@ -184,7 +218,7 @@ export async function iniciar({ base, alProgreso, reducido }) {
       if (paso === 0) { sel[0] = 'placa'; lista.push({ key: 'ia:mic', pos: nodo.centro('Microfonos', [44, 0, 0]), titulo: 'Micrófonos', sub: 'Escuchan «DOMI»', alpha: 1 }); }
       if (paso === 1) {
         sel[0] = 'placa'; sel[1] = 'placa'; hz.cabeza = Math.min(1, qq * 1.15); hz.dir = 1;
-        lista.push({ key: 'ia:wifi', pos: core.centro('Placa_WiFi_blindaje'), titulo: 'Por tu Wi-Fi', sub: 'Tu voz no sale de casa', alpha: qq > 0.5 ? 1 : 0 });
+        lista.push({ key: 'ia:wifi', pos: core.centro('Placa_WiFi_blindaje'), titulo: 'Por el Wi-Fi', sub: 'Dentro de la red de tu empresa', alpha: qq > 0.5 ? 1 : 0 });
       }
       if (paso === 2) {
         sel[1] = 'placa'; hz.flujo = 0.0;
@@ -221,27 +255,30 @@ export async function iniciar({ base, alProgreso, reducido }) {
   }
 
   // ---------------------------------------------------------------- bucle
-  const reloj = new THREE.Clock();
-  let t = 0, firmaSombra = '', cuadros = 0, lento = 0, ventana = 0, fadePrev = '';
+  let anterior = -Infinity, sombraAnterior = -Infinity;
+  let t = 0, firmaSombra = '', lento = 0, ventana = 0, fadePrev = '';
   const ocultarSombra = [E.piso, E.charco, E.brilloEstado, E.fondo, haz.mesh];
   const capaEtiquetas = document.getElementById('etiquetas');
-  const PR_MIN = Q.movil ? 0.75 : 1;
-  function cuadro() {
+  function cuadro(ahora) {
     requestAnimationFrame(cuadro);
-    const dt = Math.min(reloj.getDelta(), 0.05);
+    if (document.hidden) { anterior = ahora; return; }
+    const intervalo = ahora - anterior;
+    if (intervalo < 1000 / 65) return;
+    anterior = ahora;
+    const dt = Math.min(intervalo / 1000, 0.06);
     if (!reducido) t += dt;
     const s = director.paso(dt);
     const sec = director.activa();
-    // medidas de los textos ANTES de tocar estilos: así se usan las del cuadro anterior, ya calculadas
+    const visible = s.fade >= 0.01 || controls.enabled;
     const { w, h } = E.size();
-    const franja = ui.franjaLibre(sec);
-    const zona = w >= 900 && ui.zonaTexto(sec) ? { x0: 0, x1: ui.bordeTexto(sec) } : null;
+    // Leer las posiciones del texto antes de modificar su estilo.
+    const franja = visible ? ui.franjaLibre(sec) : null;
+    const zona = visible && w >= 900 && ui.zonaTexto(sec) ? { x0: 0, x1: ui.bordeTexto(sec) } : null;
     ui.actualizar(sec, dt);
 
-    // fundido al final (comprar y especificaciones): no se dibuja si no se ve
-    const fade = s.fade.toFixed(2);
+    const fade = visible ? s.fade.toFixed(2) : '0';
     if (fade !== fadePrev) { fadePrev = fade; canvas.style.opacity = fade; capaEtiquetas.style.opacity = fade; }
-    if (s.fade < 0.01 && !controls.enabled) return;
+    if (!visible) { ventana = 0; lento = 0; return; }
 
     // apertura: el scroll manda salvo que el usuario use «Abrir» / «Ensamblar»
     s.nExpEf = ui.explodeEfectivo('nodo', s.nExp, dt);
@@ -250,14 +287,19 @@ export async function iniciar({ base, alProgreso, reducido }) {
     nodo.root.position.set(s.nX, s.nY, s.nZ); nodo.root.rotation.y = s.nRot;
     core.root.position.set(s.cX, s.cY, s.cZ); core.root.rotation.y = s.cRot;
     nodo.root.visible = Math.abs(s.nX) < 330; core.root.visible = Math.abs(s.cX) < 330;
-    nodo.update(dt, t, s.nExpEf); core.update(dt, t, s.cExpEf);
+    if (nodo.root.visible) nodo.update(dt, t, s.nExpEf);
+    if (core.root.visible) core.update(dt, t, s.cExpEf);
 
     E.luces.key.intensity = 2.2 * s.key; E.luces.rim.intensity = 2.6 * s.rim; E.luces.fill.intensity = 0.35 * s.fill;
     E.scene.environmentIntensity = 0.85 * s.env;
     E.charco.material.opacity = 0.5 + 0.5 * s.key;
 
     // si el usuario abre o ensambla con los botones, el encuadre acompaña la apertura real
-    const sc = encuadreManual(s, sec);
+    const sc = { ...encuadreManual(s, sec) };
+    if (nodo.root.visible && sec !== 'core-exterior' && (sec !== 'interior' || ui.dispositivoInterior() !== 'core')) {
+      sc.ty += nodo.alturaModulo * .46;
+      sc.r += nodo.alturaModulo * .42;
+    }
     let centroX = E.size().w / 2;
     if (controls.enabled) { controls.update(); }
     else if (volver > 0) {
@@ -270,7 +312,7 @@ export async function iniciar({ base, alProgreso, reducido }) {
     // luz del estado sobre el piso y desde adentro del NODO
     const lg = logica(sec, s, t);
     const colN = nodo.col;
-    nodo.centro('MatrizLED', [0, 0, 22], tmp);
+    nodo.centro('AnilloLED', [0, 11, 22], tmp);
     E.luces.estado.position.copy(tmp); E.luces.estado.color.copy(colN);
     E.luces.estado.intensity = nodo.root.visible ? Math.min(1.5, nodo.energia || 0) * 220 * s.key : 0;
     E.luces.estado2.position.copy(core.centro('Luz_DOMI', [0, 0, 18], tmp2)); E.luces.estado2.color.copy(core.col);
@@ -283,28 +325,33 @@ export async function iniciar({ base, alProgreso, reducido }) {
     haz.update(a, b, { ...lg.hz, t: reducido ? 0 : t, bajo: Math.min(1, Math.max(0, s.nExpEf * 3 - 0.2)) });
 
     // sombras de contacto: solo cuando algo se mueve
-    const firma = [s.nX, s.nZ, s.nRot, s.nExpEf, s.cX, s.cZ, s.cRot, s.cExpEf].map((x) => x.toFixed(1)).join();
-    const cadaN = Q.nivel === 'alta' ? 2 : 4;
-    if (!Q.sinSombra && ((firma !== firmaSombra && cuadros % cadaN === 0) || cuadros % 30 === 0)) { E.sombra.render(E.scene, ocultarSombra); firmaSombra = firma; }
+    if (E.sombra && ahora - sombraAnterior >= 100) {
+      const firma = [s.nX, s.nY, s.nZ, s.nRot, s.nExpEf, nodo.alturaModulo,
+        s.cX, s.cY, s.cZ, s.cRot, s.cExpEf].map((x) => x.toFixed(2)).join();
+      if (firma !== firmaSombra) {
+        E.sombra.render(E.scene, ocultarSombra);
+        firmaSombra = firma;
+        sombraAnterior = ahora;
+      }
+    }
 
-    E.terminacion.uniforms.uTime.value = t;
+    if (E.terminacion) E.terminacion.uniforms.uTime.value = t;
     E.composer.render();
 
-    etiquetas.render(lg.lista, { w, h, centroX, compacto: w < 700, caja: cajaPantalla(w), franja, zona });
+    if (!controls.enabled) {
+      const caja = lg.lista.some((etiqueta) => etiqueta.alpha > 0) ? cajaPantalla(w) : null;
+      etiquetas.render(lg.lista, { w, h, centroX, compacto: w < 700, caja, franja, zona });
+    }
 
-    // calidad adaptativa: si en una ventana de 2 s más de un cuarto de los cuadros tardan más de 1/45 s,
-    // baja la resolución un escalón (sin pasar de la densidad real de la pantalla) y, al final, apaga el bloom
-    cuadros++; ventana += dt; if (dt > 1 / 45) lento += dt;
-    if (ventana > 2) {
-      if (lento / ventana > 0.25) {
-        const pr = E.renderer.getPixelRatio();
-        if (pr > PR_MIN + 0.01) { E.renderer.setPixelRatio(Math.max(PR_MIN, pr - 0.25)); E.resize(); }
-        else if (E.bloom.enabled) E.bloom.enabled = false;
-      }
-      ventana = 0; lento = 0;
+    // Si el equipo no sostiene cuadros fluidos, baja primero los efectos y después la resolución.
+    ventana += dt;
+    if (intervalo > 34) lento += dt;
+    if (ventana >= 1.4) {
+      if (lento / ventana > 0.3) E.aligerar();
+      ventana = 0;
+      lento = 0;
     }
   }
-  cuadro();
-  document.body.classList.add('listo');
+  requestAnimationFrame(cuadro);
   return { director, ui };
 }
