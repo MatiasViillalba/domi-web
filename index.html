@@ -220,7 +220,10 @@ html{scroll-padding-top:76px}
 .escena-uso:hover figcaption{transform:none}
 .escena-uso figcaption strong{font-size:1.05rem}
 .escena-uso figcaption span{display:block;opacity:.85}
-.escena-uso:hover img{animation-play-state:paused;transform:scale(1.12)!important}
+.escena-uso{transition:transform .8s ease,box-shadow .8s ease,border-color .8s ease}
+.escena-uso:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.32)}
+.escena-uso img{transition:scale 1.2s cubic-bezier(.25,.1,.25,1)}
+.escena-uso:hover img{scale:1.03}
 @media (prefers-reduced-motion:reduce){.escena-uso img,.comparacion-ventajas li::before,.ventaja-icono .pulso{animation:none!important}}
 .comparacion-ventajas li .ventaja-icono{display:grid!important;place-items:center;width:46px;height:46px;font-size:0;line-height:0}
 .comparacion-ventajas li .ventaja-icono svg{width:24px!important;height:24px!important;display:block}
@@ -642,7 +645,7 @@ body.modo-oro .sim-marco{box-shadow:0 0 0 2px rgba(255,217,119,.7),0 0 140px rgb
             <dl>
               <div><dt>Tamaño</dt><dd>Ø96 × 110 mm con cable · Ø96 × 138,6 mm con batería</dd></div>
               <div><dt>Alimentación</dt><dd>USB-C 5 V · versión con batería de 18,72 Wh, carga por USB-C</dd></div>
-              <div><dt>Autonomía</dt><dd>4–6 h calculadas para la versión con batería, pendiente de ensayo</dd></div>
+              <div><dt>Autonomía</dt><dd>4–6 h calculadas para la versión con batería</dd></div>
               <div><dt>Audio</dt><dd>2 micrófonos · parlante de 5 W en 360°</dd></div>
               <div><dt>Privacidad</dt><dd>Corte físico de micrófonos desde la tapa</dd></div>
               <div><dt>Conectividad</dt><dd>Wi-Fi</dd></div>
