@@ -21,7 +21,7 @@ export function detectarCalidad() {
   if (movil && (nucleos <= 4 || memoria <= 3)) nivel = 'baja';
   const dpr = Math.max(1, devicePixelRatio || 1);
   const q = {
-    alta: { pr: 1, pixels: 1350000, sombra: 512 },
+    alta: { pr: 2, pixels: 5000000, sombra: 2048 },
     media: { pr: 0.9, pixels: 1000000, sombra: 256 },
     baja: { pr: 0.8, pixels: 750000, sombra: 256 },
   }[nivel];
@@ -30,7 +30,7 @@ export function detectarCalidad() {
   q.pr = +qs.get('pr') || (captura ? Math.min(1.25, dpr) : Math.min(q.pr, dpr));
   if (captura || +qs.get('pr') > 0) q.pixels = Infinity;
   q.msaa = +qs.get('msaa') || 0;
-  q.bloom = qs.get('bloom') === '1' || (captura && qs.get('bloom') !== '0');
+  q.bloom = qs.get('bloom') === '1' || ((captura || nivel === 'alta') && qs.get('bloom') !== '0');
   q.grano = captura;
   q.sinSombra = qs.get('sombra') === '0';
   return { ...q, pr: Math.max(0.5, q.pr) };
@@ -136,7 +136,7 @@ export function crearEscenario(canvas, Q) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', alpha: false });
   // tono neutro (Khronos PBR Neutral): respeta los colores reales de las terminaciones y no aplasta los grises oscuros
   renderer.toneMapping = THREE.NeutralToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMappingExposure = 1.12;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.setClearColor(BG, 1);
 
@@ -144,7 +144,7 @@ export function crearEscenario(canvas, Q) {
   scene.background = BG;
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(ambienteEstudio(), 0.03).texture;
-  scene.environmentIntensity = 0.85;
+  scene.environmentIntensity = 1.05;
 
   const camera = new THREE.PerspectiveCamera(26, 1, 5, 6000);
 
@@ -170,7 +170,7 @@ export function crearEscenario(canvas, Q) {
   // el piso se funde con el fondo por niebla: no hay horizonte visible
   scene.fog = new THREE.Fog(BG, 900, 2300);
   const piso = new THREE.Mesh(new THREE.CircleGeometry(4000, 96).rotateX(-Math.PI / 2),
-    new THREE.MeshStandardMaterial({ color: 0x030304, roughness: 0.9, metalness: 0, envMapIntensity: 0.04 }));
+    new THREE.MeshStandardMaterial({ color: 0x070809, roughness: 0.82, metalness: 0.04, envMapIntensity: 0.05 }));
   scene.add(piso);
   const charco = new THREE.Mesh(new THREE.PlaneGeometry(1100, 1100).rotateX(-Math.PI / 2),
     new THREE.MeshBasicMaterial({ map: tex, color: 0x111216, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
@@ -190,7 +190,7 @@ export function crearEscenario(canvas, Q) {
   const rt = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, samples: Q.msaa });
   const composer = new EffectComposer(renderer, rt);
   composer.addPass(new RenderPass(scene, camera));
-  const bloom = Q.bloom ? new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.62, 1.05) : null;
+  const bloom = Q.bloom ? new UnrealBloomPass(new THREE.Vector2(256, 256), 0.38, 0.55, 1.1) : null;
   if (bloom) composer.addPass(bloom);
   composer.addPass(new OutputPass());
   const terminacion = Q.grano ? new ShaderPass(Terminacion) : null;

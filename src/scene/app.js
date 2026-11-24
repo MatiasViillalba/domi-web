@@ -291,7 +291,7 @@ export async function iniciar({ base, alProgreso, reducido }) {
     if (core.root.visible) core.update(dt, t, s.cExpEf);
 
     E.luces.key.intensity = 2.2 * s.key; E.luces.rim.intensity = 2.6 * s.rim; E.luces.fill.intensity = 0.35 * s.fill;
-    E.scene.environmentIntensity = 0.85 * s.env;
+    E.scene.environmentIntensity = 1 * s.env;
     E.charco.material.opacity = 0.5 + 0.5 * s.key;
 
     // si el usuario abre o ensambla con los botones, el encuadre acompaña la apertura real

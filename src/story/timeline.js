@@ -10,7 +10,7 @@ export const INICIAL = {
   tx: 0, ty: 42, tz: 0, az: 0, el: 6, r: 216, ox: 0, oy: -0.44, mox: 0, moy: -0.32, mr: 0.82,
   nX: -80, nY: 0, nZ: 0, nRot: 0.32, nExp: 0,
   cX: 74, cY: 0, cZ: 6, cRot: -0.34, cExp: 0,
-  key: 0, rim: 0.25, fill: 0.05, env: 0.12, haz: 0, cielo: 0, flujo: 1, piso: 0.4,
+  key: 0.6, rim: 0.75, fill: 0.55, env: 0.65, haz: 0, cielo: 0, flujo: 1, piso: 0.4,
   fade: 1,
 };
 

@@ -1,12 +1,12 @@
 .nav nav { gap: clamp(9px, 1.35vw, 19px); }
 
 .presentacion-ae4 {
-  --ae4-panel: #111824;
-  --ae4-borde: #2b3a51;
-  --ae4-acento: #aecbfa;
-  --ae4-suave: #b4c1d5;
+  --ae4-panel: #111215;
+  --ae4-borde: #2d313d;
+  --ae4-acento: #f2f3f5;
+  --ae4-suave: #9a9ea7;
   padding-block: clamp(58px, 9vw, 112px);
-  background: #0b0f16;
+  background: #08090b;
 }
 
 .presentacion-ae4 section {
@@ -46,9 +46,9 @@
 .comparacion-ventajas li {
   padding: 15px;
   border: 1px solid var(--ae4-borde);
-  border-top-color: #779fdc;
+  border-top-color: #6a6e77;
   border-radius: 12px;
-  background: linear-gradient(150deg, #182744, var(--ae4-panel));
+  background: linear-gradient(150deg, #16181d, var(--ae4-panel));
 }
 
 .comparacion-ventajas strong,
@@ -115,7 +115,7 @@
   margin: 0;
   border: 1px solid var(--ae4-borde);
   border-radius: 12px;
-  background: #0b101a;
+  background: #0b0c0f;
 }
 
 .panel-capturas img { display: block; width: 100%; height: auto; }
@@ -166,7 +166,7 @@ body:has(.visor-lamina[open]) { overflow: hidden; }
   padding: 0;
   border: 1px solid var(--ae4-borde);
   border-radius: 50%;
-  background: #1b273a;
+  background: #1c1e23;
   font-size: 1.65rem;
   line-height: 1;
   cursor: pointer;
@@ -218,7 +218,7 @@ body:has(.visor-lamina[open]) { overflow: hidden; }
 .laminas-criterios strong, .laminas-criterios span { display: block; }
 .laminas-criterios strong { margin-bottom: 5px; color: var(--ae4-acento); }
 .laminas-criterios span { color: var(--ae4-suave); font-size: .84rem; line-height: 1.45; }
-.laminas-correcciones { margin-top: 16px; padding: 18px 20px; border: 1px solid var(--ae4-borde); border-left: 3px solid #779fdc; border-radius: 12px; background: linear-gradient(150deg, #142036, var(--ae4-panel)); }
+.laminas-correcciones { margin-top: 16px; padding: 18px 20px; border: 1px solid var(--ae4-borde); border-left: 3px solid #6a6e77; border-radius: 12px; background: linear-gradient(150deg, #131519, var(--ae4-panel)); }
 .laminas-correcciones h3 { margin: 0 0 8px; font-size: 1.05rem; }
 .laminas-correcciones p { max-width: 90ch; margin: 6px 0 0; color: var(--ae4-suave); font-size: .9rem; line-height: 1.5; }
 .laminas-correcciones strong { color: var(--texto); }
